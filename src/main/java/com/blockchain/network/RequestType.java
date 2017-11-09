@@ -7,6 +7,11 @@ public enum RequestType {
 
     PING,
     VOTE_FOR_LEADER,
-    TERMINATE
+    TERMINATE,
+    START_TRANSACTION,
+    DO_WORK,
+    DONE_WORK,
+    VERIFY_WORK,
+    FINISH_TRANSACTION
 
 }

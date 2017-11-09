@@ -1,5 +1,6 @@
 package com.blockchain;
 
+import com.blockchain.client.Transaction;
 import com.blockchain.network.RequestType;
 import com.blockchain.network.SimpleRequest;
 import com.blockchain.sandbox.client.SandboxClient;
@@ -7,6 +8,8 @@ import com.blockchain.sandbox.network.SandboxNetwork;
 import com.blockchain.sandbox.network.SandboxReceiver;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 /**
  * Created by denis on 11/4/2017.
@@ -16,9 +19,9 @@ public class RaftTest {
     @Test
     public void testLeaderElection() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient(network);
-        SandboxClient clientB = new SandboxClient(network);
-        SandboxClient clientC = new SandboxClient(network);
+        SandboxClient clientA = new SandboxClient("A", network, null);
+        SandboxClient clientB = new SandboxClient("B", network, null);
+        SandboxClient clientC = new SandboxClient("C", network, null);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -31,8 +34,8 @@ public class RaftTest {
         System.out.println("Started...");
 
         Thread.sleep(1000);
-        network.broadcastMessage(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+        network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+//        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 
         threadA.join();
         threadB.join();
@@ -53,9 +56,9 @@ public class RaftTest {
     @Test
     public void testLeaderReElection() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient(network);
-        SandboxClient clientB = new SandboxClient(network);
-        SandboxClient clientC = new SandboxClient(network);
+        SandboxClient clientA = new SandboxClient("A", network, null);
+        SandboxClient clientB = new SandboxClient("B", network, null);
+        SandboxClient clientC = new SandboxClient("C", network, null);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -69,7 +72,7 @@ public class RaftTest {
 
         Thread.sleep(1000);
 
-        SandboxClient clientD = new SandboxClient(network);
+        SandboxClient clientD = new SandboxClient("D", network, null);
         Thread threadD = new Thread(clientD);
         threadD.start();
 
@@ -79,18 +82,70 @@ public class RaftTest {
 
         Assert.assertTrue(clientD.isLeader());
 
-        network.broadcastMessage(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+        network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+//        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 
         threadA.join();
         threadB.join();
         threadC.join();
 
         System.out.println("Finished...");
-
-
     }
 
+    @Test
+    public void testTransaction() throws InterruptedException {
+        ArrayList<Transaction> initTransactions = new ArrayList<>();
+        initTransactions.add(new Transaction("A", "B", 10, 0, "hash".getBytes(), 1073814698));
+
+        SandboxNetwork network = new SandboxNetwork();
+        SandboxClient clientA = new SandboxClient("A", network, initTransactions);
+        SandboxClient clientB = new SandboxClient("B", network, initTransactions);
+        SandboxClient clientC = new SandboxClient("C", network, initTransactions);
+
+        Thread threadA = new Thread(clientA);
+        Thread threadB = new Thread(clientB);
+        Thread threadC = new Thread(clientC);
+
+        threadA.start();
+        threadB.start();
+        threadC.start();
+
+        System.out.println("Started...");
+
+        Thread.sleep(1000);
+
+        clientA.transactionSend(clientB, 1);
+
+        Thread.sleep(5000);
+
+//        System.out.println("A: " + clientA.getBalance());
+//        System.out.println("B: " + clientB.getBalance());
+//        System.out.println("C: " + clientC.getBalance());
+
+        clientA.dumpTransactions();
+
+        network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+
+        threadA.join();
+        threadB.join();
+        threadC.join();
+
+        System.out.println("Finished...");
+    }
+
+    @Test
+    public void transactionsTest() {
+        ArrayList<Transaction> initTransactions = new ArrayList<>();
+        Transaction t1 = new Transaction("A", "B", 10, 0, "hash".getBytes(), 1073814698);
+        Transaction t2 = new Transaction("B", "A", 1, 0, "hash".getBytes(), 2049080861);
+        initTransactions.add(t1);
+        initTransactions.add(t2);
+
+        SandboxNetwork network = new SandboxNetwork();
+        SandboxClient clientA = new SandboxClient("A", network, initTransactions);
+        SandboxClient clientB = new SandboxClient("B", network, initTransactions);
+        Assert.assertEquals(-9, clientA.getBalance());
+        Assert.assertEquals(9, clientB.getBalance());
+    }
 
 }
-

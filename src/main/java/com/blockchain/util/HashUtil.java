@@ -9,7 +9,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class HashUtil {
 
-    public static final int COMPLEXITY = 4;
+    public static final int COMPLEXITY = 2;
 
     public static int calcNonce(String body) {
         Integer nonce = Math.toIntExact(Math.round(Math.random() * Integer.MAX_VALUE));
@@ -19,6 +19,9 @@ public class HashUtil {
                 nonce = 0;
             }
         }
+
+        // printHash(hash(nonce.toString() + body));
+
         return nonce;
     }
 
@@ -33,16 +36,20 @@ public class HashUtil {
         return null;
     }
 
-    public static boolean isValid(String s) {
-        byte[] hash = hash(s);
+    public static boolean isValid(byte[] hash) {
         if (hash != null) {
             int counter = 0;
             for (int i = 0; i < hash.length; i++) {
-                if (hash[i] == 0) counter++;
+                if (hash[i] != 0) break;
+                counter++;
             }
             return counter == COMPLEXITY;
         }
         return false;
+    }
+
+    public static boolean isValid(String s) {
+        return isValid(hash(s));
     }
 
     public static void printHash(byte[] hash) {

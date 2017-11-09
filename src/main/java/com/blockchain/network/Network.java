@@ -10,7 +10,10 @@ public interface Network {
     void addReceiver(Handler handler);
     void removeReceiver(Handler handler);
 
+    void broadcastMessageAll(Receiver from, Request message, Consumer<Response> response);
+
     Receiver getReceiverByClient(Handler handler);
+//    Receiver getReceiverByClientId(String clientId);
     Receiver getNewId();
     int getReceiversCount();
 
