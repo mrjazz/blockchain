@@ -1,18 +1,15 @@
 package com.blockchain.sandbox.client;
 
-import com.blockchain.client.Transaction;
 import com.blockchain.client.Client;
+import com.blockchain.client.Transaction;
 import com.blockchain.network.*;
-import com.blockchain.sandbox.handler.CommitTransactionHandler;
 import com.blockchain.sandbox.handler.VerifyTransactionHandler;
-import com.blockchain.sandbox.handler.VoteForLeaderHandler;
-import com.blockchain.util.HashUtil;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Random;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
+
 
 /**
  * Created by denis on 11/7/2017.
@@ -63,74 +60,6 @@ public class SandboxClient implements Client, Runnable, Handler {
         });
     }
 
-//    private void voteForLeadership() {
-//        Consumer<Response> inProgressLeaderVote = new VoteForLeaderHandler(network.getReceiversCount(), (result) -> {
-//            if (result) {
-//                System.out.println("Leader selected: " + me);
-//                leader = me;
-//            }
-//        });
-//        network.broadcastMessage(me, new SimpleRequest(RequestType.VOTE_FOR_LEADER), inProgressLeaderVote);
-//    }
-
-//    @Override
-//    public Response onReceive(Receiver receiver, Request message) {
-//        Transaction transaction;
-//        switch (message.getType()) {
-//            case PING:
-//                return new SimpleResponse(ResponseType.PONG);
-//            case TERMINATE:
-//                terminated = true;
-//                network.removeReceiver(this);
-//                return new SimpleResponse(ResponseType.TERMINATED);
-//            case VOTE_FOR_LEADER:
-//                if (!me.equals(leader)) {
-//                    leader = receiver;
-//                    return new SimpleResponse(ResponseType.ACCEPT_LEADER);
-//                }
-//                return new SimpleResponse(ResponseType.TIMEOUT);
-//            case START_TRANSACTION:
-//                if (me.equals(leader)) {
-//                    network.broadcastMessageAll(
-//                            receiver,
-//                            TransactionRequest.of(RequestType.DO_WORK, (TransactionRequest) message),
-//                            response -> {
-//                                //
-//                            }
-//                    );
-//                    return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
-//                }
-//            case DO_WORK:
-//                doWork((TransactionRequest) message);
-//                return new SimpleResponse(ResponseType.DOING_WORK);
-//            case DONE_WORK:
-//                transaction = ((TransactionRequest) message).getTransaction();
-//                if (validTransaction(transaction)) {
-//                    verifyTransaction(transaction);
-//                    return new SimpleResponse(ResponseType.DOING_WORK);
-//                }
-//                return new SimpleResponse(ResponseType.TIMEOUT);
-//            case VERIFY_WORK:
-//                transaction = ((TransactionRequest) message).getTransaction();
-//                if (validTransaction(transaction)) {
-//                    commits.add(transaction);
-//                    return new SimpleResponse(ResponseType.VERIFIED_WORK);
-//                }
-//                return new SimpleResponse(ResponseType.TIMEOUT);
-//            case FINISH_TRANSACTION:
-//                transaction = ((TransactionRequest) message).getTransaction();
-//                if (validTransaction(transaction) && commits.contains(transaction)) {
-//                    transactions.add(transaction);
-//                    commits.remove(transaction);
-//                    return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
-//                }
-//                return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
-//            default:
-//                System.out.println("Unknown message type: " + message);
-//        }
-//        return new SimpleResponse(ResponseType.TIMEOUT);
-//    }
-
     @Override
     public Response onReceive(Receiver receiver, Request message) {
         switch (message.getType()) {
@@ -178,21 +107,6 @@ public class SandboxClient implements Client, Runnable, Handler {
             System.out.println("Invalid transaction " + transaction);
         }
     }
-
-//    private void commitTransaction(Transaction transaction) {
-//        Consumer<Response> commitTransaction = new CommitTransactionHandler(network.getReceiversCount(), (result) -> {
-//            if (result && commits.contains(transaction)) {
-//                System.out.println("Committed");
-//                transactions.add(transaction);
-//            }
-//            commits.remove(transaction);
-//        });
-//        network.broadcastMessage(
-//                me,
-//                new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
-//                commitTransaction
-//        );
-//    }
 
     private void verifyWork(Receiver to, Transaction transaction) {
         System.out.println("VERIFY_TRANSACTION - " + getClientId());
