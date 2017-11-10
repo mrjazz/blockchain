@@ -206,15 +206,12 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     private void doWork(Receiver to, Transaction transaction) {
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("Mining started...");
-                transaction.calcNonce();
-                System.out.println("Mining done...");
-                if (validTransaction(transaction)) {
-                    verifyWork(to, transaction);
-                }
+        (new Thread(() -> {
+            System.out.println("Mining started...");
+            transaction.calcNonce();
+            System.out.println("Mining done...");
+            if (validTransaction(transaction)) {
+                verifyWork(to, transaction);
             }
         })).start();
     }
@@ -239,9 +236,7 @@ public class SandboxClient implements Client, Runnable, Handler {
                         RequestType.START_TRANSACTION,
                         transaction
                 ),
-                response -> {
-                    System.out.println(response);
-                }
+                response -> System.out.println(response)
         );
     }
 

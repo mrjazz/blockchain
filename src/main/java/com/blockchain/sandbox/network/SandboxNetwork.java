@@ -31,17 +31,12 @@ public class SandboxNetwork implements Network {
             log(logMessage);
         }
 
-        (new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Response response = getResponse(from, to, message, callback);
-
-                if (!message.getType().equals(RequestType.PING)) {
-                    System.out.println(String.format("%s <- %s; %s\n", to, from, response));
-                }
-
-                callback.accept(response);
+        (new Thread(() -> {
+            Response response = getResponse(from, to, message, callback);
+            if (!message.getType().equals(RequestType.PING)) {
+                System.out.println(String.format("%s <- %s; %s\n", to, from, response));
             }
+            callback.accept(response);
         })).start();
     }
 
