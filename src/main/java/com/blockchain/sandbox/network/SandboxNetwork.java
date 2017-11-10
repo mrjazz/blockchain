@@ -31,13 +31,18 @@ public class SandboxNetwork implements Network {
             log(logMessage);
         }
 
-        Response response = getResponse(from, to, message, callback);
-        logMessage = String.format("%s <- %s; %s\n", to, from, response);
-        if (!message.getType().equals(RequestType.PING)) {
-            log(logMessage);
-        }
+        (new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Response response = getResponse(from, to, message, callback);
 
-        callback.accept(response);
+                if (!message.getType().equals(RequestType.PING)) {
+                    System.out.println(String.format("%s <- %s; %s\n", to, from, response));
+                }
+
+                callback.accept(response);
+            }
+        })).start();
     }
 
     private void log(String logMessage) {
@@ -71,7 +76,7 @@ public class SandboxNetwork implements Network {
     @Override
     public void broadcastMessageAll(Receiver from, Request message, Consumer<Response> response) {
         broadcastMessage(from, message, response);
-        sendMessage(null, from, message, response);
+        sendMessage(from, from, message, response);
     }
 
     @Override

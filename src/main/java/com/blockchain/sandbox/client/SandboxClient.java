@@ -21,9 +21,7 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     private final Network network;
     private final LinkedBlockingDeque<Transaction> transactions;
-    private LinkedBlockingDeque<Transaction> commits;
 
-    private Receiver leader;
     private Receiver me;
     private boolean terminated = false;
     private final String clientId;
@@ -32,7 +30,6 @@ public class SandboxClient implements Client, Runnable, Handler {
         this.network = network;
         this.clientId = clientId;
         this.transactions = new LinkedBlockingDeque<>();
-        this.commits = new LinkedBlockingDeque<>();
         if (trLog != null) {
             for (Transaction transaction : trLog) {
                 transactions.add(transaction);
@@ -54,70 +51,88 @@ public class SandboxClient implements Client, Runnable, Handler {
                 e.printStackTrace();
             }
             // TODO : add timeout for inProgressLeaderVote
-            pingLeader();
+            ping();
         }
     }
 
-    private void pingLeader() {
-        if (me.equals(leader)) {
-            return;
-        }
-
-        if (leader == null) {
-            voteForLeadership();
-        } else {
-            network.sendMessage(me, leader, new SimpleRequest(RequestType.PING), (response) -> {
-                if (response.getType().equals(ResponseType.TIMEOUT)) {
-                    voteForLeadership();
-                } else if (!response.getType().equals(ResponseType.PONG)) {
-                    throw new RuntimeException("Invalid response for Ping request");
-                }
-            });
-        }
-    }
-
-    private void voteForLeadership() {
-        Consumer<Response> inProgressLeaderVote = new VoteForLeaderHandler(network.getReceiversCount(), (result) -> {
-            if (result) {
-                System.out.println("Leader selected: " + me);
-                leader = me;
+    private void ping() {
+        network.broadcastMessage(me, new SimpleRequest(RequestType.PING), (response) -> {
+            if (!response.getType().equals(ResponseType.PONG)) {
+                throw new RuntimeException("Invalid response for Ping request");
             }
         });
-        network.broadcastMessage(me, new SimpleRequest(RequestType.VOTE_FOR_LEADER), inProgressLeaderVote);
     }
 
-    private void verifyTransaction(Transaction transaction) {
-//        commits.add(transaction);
-        System.out.println("VERIFY_TRANSACTION - " + getClientId() + "; " + commits.size());
-        Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
-            if (result) {
-                System.out.println("Verified - " + getClientId());
-                commitTransaction(transaction);
-            } else {
-                commits.remove(transaction);
-            }
-        });
-        network.broadcastMessage(me, new TransactionRequest(RequestType.VERIFY_WORK, transaction), verifyTransaction);
-    }
+//    private void voteForLeadership() {
+//        Consumer<Response> inProgressLeaderVote = new VoteForLeaderHandler(network.getReceiversCount(), (result) -> {
+//            if (result) {
+//                System.out.println("Leader selected: " + me);
+//                leader = me;
+//            }
+//        });
+//        network.broadcastMessage(me, new SimpleRequest(RequestType.VOTE_FOR_LEADER), inProgressLeaderVote);
+//    }
 
-    private void commitTransaction(Transaction transaction) {
-        Consumer<Response> commitTransaction = new CommitTransactionHandler(network.getReceiversCount(), (result) -> {
-            if (result && commits.contains(transaction)) {
-                System.out.println("Committed");
-                transactions.add(transaction);
-            }
-            commits.remove(transaction);
-        });
-        network.broadcastMessage(
-                me,
-                new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
-                commitTransaction
-        );
-    }
+//    @Override
+//    public Response onReceive(Receiver receiver, Request message) {
+//        Transaction transaction;
+//        switch (message.getType()) {
+//            case PING:
+//                return new SimpleResponse(ResponseType.PONG);
+//            case TERMINATE:
+//                terminated = true;
+//                network.removeReceiver(this);
+//                return new SimpleResponse(ResponseType.TERMINATED);
+//            case VOTE_FOR_LEADER:
+//                if (!me.equals(leader)) {
+//                    leader = receiver;
+//                    return new SimpleResponse(ResponseType.ACCEPT_LEADER);
+//                }
+//                return new SimpleResponse(ResponseType.TIMEOUT);
+//            case START_TRANSACTION:
+//                if (me.equals(leader)) {
+//                    network.broadcastMessageAll(
+//                            receiver,
+//                            TransactionRequest.of(RequestType.DO_WORK, (TransactionRequest) message),
+//                            response -> {
+//                                //
+//                            }
+//                    );
+//                    return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
+//                }
+//            case DO_WORK:
+//                doWork((TransactionRequest) message);
+//                return new SimpleResponse(ResponseType.DOING_WORK);
+//            case DONE_WORK:
+//                transaction = ((TransactionRequest) message).getTransaction();
+//                if (validTransaction(transaction)) {
+//                    verifyTransaction(transaction);
+//                    return new SimpleResponse(ResponseType.DOING_WORK);
+//                }
+//                return new SimpleResponse(ResponseType.TIMEOUT);
+//            case VERIFY_WORK:
+//                transaction = ((TransactionRequest) message).getTransaction();
+//                if (validTransaction(transaction)) {
+//                    commits.add(transaction);
+//                    return new SimpleResponse(ResponseType.VERIFIED_WORK);
+//                }
+//                return new SimpleResponse(ResponseType.TIMEOUT);
+//            case FINISH_TRANSACTION:
+//                transaction = ((TransactionRequest) message).getTransaction();
+//                if (validTransaction(transaction) && commits.contains(transaction)) {
+//                    transactions.add(transaction);
+//                    commits.remove(transaction);
+//                    return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
+//                }
+//                return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
+//            default:
+//                System.out.println("Unknown message type: " + message);
+//        }
+//        return new SimpleResponse(ResponseType.TIMEOUT);
+//    }
 
     @Override
     public Response onReceive(Receiver receiver, Request message) {
-        Transaction transaction;
         switch (message.getType()) {
             case PING:
                 return new SimpleResponse(ResponseType.PONG);
@@ -125,48 +140,22 @@ public class SandboxClient implements Client, Runnable, Handler {
                 terminated = true;
                 network.removeReceiver(this);
                 return new SimpleResponse(ResponseType.TERMINATED);
-            case VOTE_FOR_LEADER:
-                if (!me.equals(leader)) {
-                    leader = receiver;
-                    return new SimpleResponse(ResponseType.ACCEPT_LEADER);
-                }
-                return new SimpleResponse(ResponseType.TIMEOUT);
             case START_TRANSACTION:
-                if (me.equals(leader)) {
-                    network.broadcastMessageAll(
-                            receiver,
-                            TransactionRequest.of(RequestType.DO_WORK, (TransactionRequest) message),
-                            response -> {
-                                //
-                            }
-                    );
-                    return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
-                }
-            case DO_WORK:
-                doWork((TransactionRequest) message);
-                return new SimpleResponse(ResponseType.DOING_WORK);
-            case DONE_WORK:
-                transaction = ((TransactionRequest) message).getTransaction();
-                if (validTransaction(transaction)) {
-                    verifyTransaction(transaction);
-                    return new SimpleResponse(ResponseType.DOING_WORK);
-                }
-                return new SimpleResponse(ResponseType.TIMEOUT);
+                doWork(receiver, ((TransactionRequest) message).getTransaction());
+                return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
             case VERIFY_WORK:
-                transaction = ((TransactionRequest) message).getTransaction();
-                if (validTransaction(transaction)) {
-                    commits.add(transaction);
+                if (validTransaction(((TransactionRequest) message).getTransaction())) {
                     return new SimpleResponse(ResponseType.VERIFIED_WORK);
                 }
                 return new SimpleResponse(ResponseType.TIMEOUT);
             case FINISH_TRANSACTION:
-                transaction = ((TransactionRequest) message).getTransaction();
-                if (validTransaction(transaction) && commits.contains(transaction)) {
+                Transaction transaction = ((TransactionRequest) message).getTransaction();
+                if (validTransaction(transaction)) {
                     transactions.add(transaction);
-                    commits.remove(transaction);
                     return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
                 }
                 return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
+
             default:
                 System.out.println("Unknown message type: " + message);
         }
@@ -177,16 +166,46 @@ public class SandboxClient implements Client, Runnable, Handler {
         return transaction.isValid() && Arrays.equals(transactions.getLast().getHash(), transaction.getPrevHash());
     }
 
-    private void doWork(TransactionRequest request) {
-        Transaction transaction = new Transaction(
-                request.getFromId(),
-                request.getToId(),
-                request.getAmount(),
-                request.getTimestamp(),
-                transactions.getLast().getHash(),
-                0
-        );
+    private void commitTransaction(Transaction transaction) {
+        if (validTransaction(transaction)) {
+            transactions.add(transaction);
+            network.broadcastMessage(
+                    me,
+                    new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
+                    response -> {}
+            );
+        } else {
+            System.out.println("Invalid transaction " + transaction);
+        }
+    }
 
+//    private void commitTransaction(Transaction transaction) {
+//        Consumer<Response> commitTransaction = new CommitTransactionHandler(network.getReceiversCount(), (result) -> {
+//            if (result && commits.contains(transaction)) {
+//                System.out.println("Committed");
+//                transactions.add(transaction);
+//            }
+//            commits.remove(transaction);
+//        });
+//        network.broadcastMessage(
+//                me,
+//                new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
+//                commitTransaction
+//        );
+//    }
+
+    private void verifyWork(Receiver to, Transaction transaction) {
+        System.out.println("VERIFY_TRANSACTION - " + getClientId());
+        Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
+            if (result) {
+                System.out.println("Verified - " + getClientId());
+                commitTransaction(transaction);
+            }
+        });
+        network.broadcastMessage(me, new TransactionRequest(RequestType.VERIFY_WORK, transaction), verifyTransaction);
+    }
+
+    private void doWork(Receiver to, Transaction transaction) {
         (new Thread(new Runnable() {
             @Override
             public void run() {
@@ -194,14 +213,7 @@ public class SandboxClient implements Client, Runnable, Handler {
                 transaction.calcNonce();
                 System.out.println("Mining done...");
                 if (validTransaction(transaction)) {
-                    network.sendMessage(
-                            me,
-                            leader,
-                            new TransactionRequest(RequestType.DONE_WORK, transaction),
-                            response -> {
-                                //
-                            }
-                    );
+                    verifyWork(to, transaction);
                 }
             }
         })).start();
@@ -211,23 +223,21 @@ public class SandboxClient implements Client, Runnable, Handler {
         return me.getId();
     }
 
-    public boolean isLeader() {
-        return me.equals(leader);
-    }
-
     @Override
     public void transactionSend(Client to, int amount) {
-        network.sendMessage(
+        Transaction transaction = new Transaction(
+                this.getClientId(),
+                to.getClientId(),
+                amount,
+                System.currentTimeMillis(),
+                transactions.getLast().getHash(),
+                0
+        );
+        network.broadcastMessageAll(
                 me,
-                leader,
                 new TransactionRequest(
                         RequestType.START_TRANSACTION,
-                        this.getClientId(),
-                        to.getClientId(),
-                        amount,
-                        System.currentTimeMillis(),
-                        transactions.getLast().getHash(),
-                        0
+                        transaction
                 ),
                 response -> {
                     System.out.println(response);

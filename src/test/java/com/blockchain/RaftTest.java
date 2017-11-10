@@ -80,8 +80,6 @@ public class RaftTest {
 
         Thread.sleep(1000);
 
-        Assert.assertTrue(clientD.isLeader());
-
         network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 //        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 
@@ -114,15 +112,18 @@ public class RaftTest {
 
         Thread.sleep(1000);
 
-        clientA.transactionSend(clientB, 1);
+        clientB.transactionSend(clientA, 1);
 
-        Thread.sleep(5000);
+        Thread.sleep(1000);
 
 //        System.out.println("A: " + clientA.getBalance());
 //        System.out.println("B: " + clientB.getBalance());
 //        System.out.println("C: " + clientC.getBalance());
 
+        System.out.println("ClientA:");
         clientA.dumpTransactions();
+        System.out.println("ClientB:");
+        clientB.dumpTransactions();
 
         network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 
