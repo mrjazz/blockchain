@@ -9,12 +9,15 @@ import com.blockchain.sandbox.network.SandboxReceiver;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 /**
  * Created by denis on 11/4/2017.
  */
-public class RaftTest {
+public class TransactionsTest {
 
     @Test
     public void testLeaderElection() throws InterruptedException {
@@ -110,15 +113,19 @@ public class RaftTest {
 
         System.out.println("Started...");
 
+//        Thread.sleep(1000);
+//
+//        clientB.transactionSend(clientA, 1);
+//
+//        Thread.sleep(1000);
+//
+//        clientB.transactionSend(clientA, 2);
+
         Thread.sleep(1000);
 
-        clientB.transactionSend(clientA, 1);
-
-        Thread.sleep(1000);
-
-//        System.out.println("A: " + clientA.getBalance());
-//        System.out.println("B: " + clientB.getBalance());
-//        System.out.println("C: " + clientC.getBalance());
+        System.out.println("A: " + clientA.getBalance());
+        System.out.println("B: " + clientB.getBalance());
+        System.out.println("C: " + clientC.getBalance());
 
         System.out.println("ClientA:");
         clientA.dumpTransactions();

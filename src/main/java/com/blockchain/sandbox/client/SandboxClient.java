@@ -1,12 +1,12 @@
 package com.blockchain.sandbox.client;
 
+import com.blockchain.client.Block;
 import com.blockchain.client.Client;
 import com.blockchain.client.Transaction;
 import com.blockchain.network.*;
 import com.blockchain.sandbox.handler.VerifyTransactionHandler;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
 
@@ -17,19 +17,18 @@ import java.util.function.Consumer;
 public class SandboxClient implements Client, Runnable, Handler {
 
     private final Network network;
-    private final LinkedBlockingDeque<Transaction> transactions;
+    private final LinkedBlockingDeque<Block> blocks = new LinkedBlockingDeque<Block>();
 
     private Receiver me;
     private boolean terminated = false;
     private final String clientId;
 
-    public SandboxClient(String clientId, Network network, Collection<Transaction> trLog) {
+    public SandboxClient(String clientId, Network network, Collection<Block> trLog) {
         this.network = network;
         this.clientId = clientId;
-        this.transactions = new LinkedBlockingDeque<>();
         if (trLog != null) {
-            for (Transaction transaction : trLog) {
-                transactions.add(transaction);
+            for (Block block : trLog) {
+                blocks.add(block);
             }
         }
         network.addReceiver(this);
@@ -65,6 +64,8 @@ public class SandboxClient implements Client, Runnable, Handler {
         switch (message.getType()) {
             case PING:
                 return new SimpleResponse(ResponseType.PONG);
+            case SYNC_BLOCKS:
+                return new SyncResponse(ResponseType.TERMINATED, blocks);
             case TERMINATE:
                 terminated = true;
                 network.removeReceiver(this);
@@ -80,7 +81,7 @@ public class SandboxClient implements Client, Runnable, Handler {
             case FINISH_TRANSACTION:
                 Transaction transaction = ((TransactionRequest) message).getTransaction();
                 if (validTransaction(transaction)) {
-                    transactions.add(transaction);
+                    blocks.add(transaction);
                     return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
                 }
                 return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
@@ -92,12 +93,12 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     private boolean validTransaction(Transaction transaction) {
-        return transaction.isValid() && Arrays.equals(transactions.getLast().getHash(), transaction.getPrevHash());
+        return transaction.isValid() && Arrays.equals(blocks.getLast().getHash(), transaction.getPrevHash());
     }
 
     private void commitTransaction(Transaction transaction) {
         if (validTransaction(transaction)) {
-            transactions.add(transaction);
+            blocks.add(transaction);
             network.broadcastMessage(
                     me,
                     new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
@@ -141,7 +142,7 @@ public class SandboxClient implements Client, Runnable, Handler {
                 to.getClientId(),
                 amount,
                 System.currentTimeMillis(),
-                transactions.getLast().getHash(),
+                blocks.getLast().getHash(),
                 0
         );
         network.broadcastMessageAll(
@@ -166,7 +167,7 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     public int getBalance() {
         int balance = 0;
-        for (Transaction transaction : transactions) {
+        for (Transaction transaction : blocks) {
             if (transaction.getFromId().equals(clientId)) {
                 balance -= transaction.getAmount();
             } else if (transaction.getToId().equals(clientId)) {
@@ -177,7 +178,7 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     public void dumpTransactions() {
-        for(Transaction transaction : transactions) {
+        for(Transaction transaction : blocks) {
             System.out.println(transaction);
         }
     }

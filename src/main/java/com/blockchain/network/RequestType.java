@@ -6,12 +6,10 @@ package com.blockchain.network;
 public enum RequestType {
 
     PING,
-    VOTE_FOR_LEADER,
     TERMINATE,
     START_TRANSACTION,
-    DO_WORK,
-    DONE_WORK,
     VERIFY_WORK,
-    FINISH_TRANSACTION
+    FINISH_TRANSACTION,
+    SYNC_BLOCKS
 
 }
