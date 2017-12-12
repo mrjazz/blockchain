@@ -1,6 +1,7 @@
 package com.blockchain.client;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Spliterator;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
@@ -43,5 +44,10 @@ public class Blockchain implements Iterable<Block> {
     @Override
     public Spliterator<Block> spliterator() {
         return blocks.spliterator();
+    }
+
+    public List<Transaction> searchInputTransactions(ClientIdentity client) {
+        // TODO : implement search input transactions
+        return null;
     }
 }

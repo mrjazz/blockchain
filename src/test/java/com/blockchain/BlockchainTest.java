@@ -39,6 +39,8 @@ public class BlockchainTest {
         Block block3 = createBlock(2, block1.getHash(), clientB, clientA, 10, 2);
 
         blockchain.add(block1).add(block2).add(block3);
+
+        blockchain.searchInputTransactions(clientA);
     }
 
     private Block createBlock(
