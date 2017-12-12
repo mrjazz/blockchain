@@ -2,21 +2,21 @@ package com.blockchain.client;
 
 import com.blockchain.util.HashUtil;
 
+import java.io.Serializable;
+
 /**
  * Created by denis on 11/4/2017.
  */
-public class Transaction {
+public class Transaction implements Serializable {
 
     final private String fromId;
     final private String toId;
     final private int amount;
-    final private byte[] signature;
 
-    public Transaction(String fromId, String toId, int amount, byte[] signature) {
+    public Transaction(String fromId, String toId, int amount) {
         this.fromId = fromId;
         this.toId = toId;
         this.amount = amount;
-        this.signature = signature;
     }
 
     public String getFromId() {

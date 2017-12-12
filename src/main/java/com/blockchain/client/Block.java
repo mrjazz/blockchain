@@ -1,9 +1,19 @@
 package com.blockchain.client;
 
 import com.blockchain.util.HashUtil;
+import com.blockchain.util.KeysUtil;
+import com.blockchain.util.StringUtil;
+import com.sun.org.apache.xml.internal.security.keys.KeyUtils;
+import javafx.beans.binding.StringBinding;
 
-import java.util.ArrayList;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by denis on 12/10/2017.
@@ -11,47 +21,117 @@ import java.util.List;
 public class Block {
 
     private int id;
+    private long timestamp;
 
     private BlockData blockData;
+    private byte[] signature;
 
-    private long timestamp;
-    private int nonce;
     private byte[] prevHash;
-    private byte[] hash;
+
+    private int nonce;
+
+    public Block() {
+    }
+
+    public Block(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+        this.id = id;
+        this.prevHash = prevHash;
+        blockData = new BlockData(inputs, outputs);
+        timestamp = System.currentTimeMillis();
+    }
+
+    public int getNonce() {
+        return nonce;
+    }
 
     public byte[] getHash() {
-        return HashUtil.hash(nonce + serialize());
+        return HashUtil.hash(nonce + getBlockBody() + signature);
     }
 
     public boolean isValid() {
-        return HashUtil.isValid(nonce + serialize());
+        return HashUtil.isValid(nonce + getBlockBody() + signature);
     }
 
     public byte[] getPrevHash() {
         return prevHash;
     }
 
-    private String serialize() {
-        return prevHash + fromId + toId + amount + timestamp;
+    private String getBlockBody() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(id);
+        builder.append(timestamp);
+        builder.append(prevHash.toString());
+
+        try {
+            // blockData should be validated!!!
+            builder.append(StringUtil.serializeToString(blockData));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return builder.toString();
     }
 
     public void calcNonce() {
-        nonce = HashUtil.calcNonce(serialize());
+        Objects.requireNonNull(signature, "Block should be signed");
+        nonce = HashUtil.calcNonce(getBlockBody() + signature);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-//
-//    @Override
-//    public int hashCode() {
-//        int result = 17;
-//        result = 31 * result + prevHash.hashCode();
-//        result = 31 * result + fromId.hashCode();
-//        result = 31 * result + toId.hashCode();
-//        result = 31 * result + amount;
-//        result = (int) (31 * result + timestamp);
-//        return result;
-//    }
+        Block block = (Block) o;
 
+        if (id != block.id) return false;
+        if (timestamp != block.timestamp) return false;
+        if (nonce != block.nonce) return false;
+        if (!blockData.equals(block.blockData)) return false;
+        if (!Arrays.equals(signature, block.signature)) return false;
+        return Arrays.equals(prevHash, block.prevHash);
+    }
 
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
+        result = 31 * result + blockData.hashCode();
+        result = 31 * result + Arrays.hashCode(signature);
+        result = 31 * result + Arrays.hashCode(prevHash);
+        result = 31 * result + nonce;
+        return result;
+    }
+
+    public boolean sign(PrivateKey privateKey) {
+        try {
+            signature = KeysUtil.sign(getBlockBody(), privateKey);
+            return true;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean verify(PublicKey publicKey) {
+        try {
+            return  KeysUtil.verify(getBlockBody(), signature, publicKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (SignatureException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 

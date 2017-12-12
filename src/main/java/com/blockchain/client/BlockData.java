@@ -1,14 +1,31 @@
 package com.blockchain.client;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by denis on 12/10/2017.
  */
-public class BlockData {
+public class BlockData implements Serializable {
 
-    private List<Transaction> inputs = new ArrayList<>();
-    private List<Transaction> outputs = new ArrayList<>();
+    final private List<Transaction> inputs;
+    final private List<Transaction> outputs;
+
+    public BlockData(List<Transaction> inputs, List<Transaction> outputs) {
+        this.inputs = inputs;
+        this.outputs = outputs;
+    }
+
+    public List<Transaction> getInputs() {
+        return inputs;
+    }
+
+    public List<Transaction> getOutputs() {
+        return outputs;
+    }
 
 }

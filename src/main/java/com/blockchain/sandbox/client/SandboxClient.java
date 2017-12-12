@@ -1,13 +1,10 @@
 package com.blockchain.sandbox.client;
 
-import com.blockchain.client.Block;
-import com.blockchain.client.Client;
-import com.blockchain.client.Transaction;
+import com.blockchain.client.*;
 import com.blockchain.network.*;
 import com.blockchain.sandbox.handler.VerifyTransactionHandler;
 
 import java.util.*;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
 
 
@@ -17,7 +14,7 @@ import java.util.function.Consumer;
 public class SandboxClient implements Client, Runnable, Handler {
 
     private final Network network;
-    private final LinkedBlockingDeque<Block> blocks = new LinkedBlockingDeque<Block>();
+    private final Blockchain blocks = new Blockchain();
 
     private Receiver me;
     private boolean terminated = false;
@@ -71,19 +68,19 @@ public class SandboxClient implements Client, Runnable, Handler {
                 network.removeReceiver(this);
                 return new SimpleResponse(ResponseType.TERMINATED);
             case START_TRANSACTION:
-                doWork(receiver, ((TransactionRequest) message).getTransaction());
+                doWork(receiver, ((BlockRequest) message).getBlock());
                 return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
             case VERIFY_WORK:
-                if (validTransaction(((TransactionRequest) message).getTransaction())) {
+                if (validBlock(((BlockRequest) message).getBlock())) {
                     return new SimpleResponse(ResponseType.VERIFIED_WORK);
                 }
                 return new SimpleResponse(ResponseType.TIMEOUT);
             case FINISH_TRANSACTION:
-                Transaction transaction = ((TransactionRequest) message).getTransaction();
-                if (validTransaction(transaction)) {
-                    blocks.add(transaction);
-                    return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
-                }
+//                Transaction transaction = ((TransactionRequest) message).getTransaction();
+//                if (validBlock(transaction)) {
+//                    blocks.add(transaction);
+//                    return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
+//                }
                 return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
 
             default:
@@ -92,41 +89,41 @@ public class SandboxClient implements Client, Runnable, Handler {
         return new SimpleResponse(ResponseType.TIMEOUT);
     }
 
-    private boolean validTransaction(Transaction transaction) {
-        return transaction.isValid() && Arrays.equals(blocks.getLast().getHash(), transaction.getPrevHash());
+    private boolean validBlock(Block block) {
+        return block.isValid() && Arrays.equals(blocks.getLast().getHash(), block.getPrevHash());
     }
 
-    private void commitTransaction(Transaction transaction) {
-        if (validTransaction(transaction)) {
-            blocks.add(transaction);
+    private void commitTransaction(Block block) {
+        if (validBlock(block)) {
+            blocks.add(block);
             network.broadcastMessage(
                     me,
-                    new TransactionRequest(RequestType.FINISH_TRANSACTION, transaction),
+                    new BlockRequest(RequestType.FINISH_TRANSACTION, block),
                     response -> {}
             );
         } else {
-            System.out.println("Invalid transaction " + transaction);
+            System.out.println("Invalid block " + block);
         }
     }
 
-    private void verifyWork(Receiver to, Transaction transaction) {
+    private void verifyWork(Receiver to, Block block) {
         System.out.println("VERIFY_TRANSACTION - " + getClientId());
         Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
             if (result) {
                 System.out.println("Verified - " + getClientId());
-                commitTransaction(transaction);
+                commitTransaction(block);
             }
         });
-        network.broadcastMessage(me, new TransactionRequest(RequestType.VERIFY_WORK, transaction), verifyTransaction);
+        network.broadcastMessage(me, new BlockRequest(RequestType.VERIFY_WORK, block), verifyTransaction);
     }
 
-    private void doWork(Receiver to, Transaction transaction) {
+    private void doWork(Receiver to, Block block) {
         (new Thread(() -> {
             System.out.println("Mining started...");
-            transaction.calcNonce();
+            block.calcNonce();
             System.out.println("Mining done...");
-            if (validTransaction(transaction)) {
-                verifyWork(to, transaction);
+            if (validBlock(block)) {
+                verifyWork(to, block);
             }
         })).start();
     }
@@ -137,17 +134,18 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     @Override
     public void transactionSend(Client to, int amount) {
-        Transaction transaction = new Transaction(
-                this.getClientId(),
-                to.getClientId(),
-                amount,
-                System.currentTimeMillis(),
-                blocks.getLast().getHash(),
-                0
+        // TODO : initialize block correctly
+        Block transaction = new Block(
+//                this.getClientId(),
+//                to.getClientId(),
+//                amount,
+//                System.currentTimeMillis(),
+//                blocks.getLast().getHash(),
+//                0
         );
         network.broadcastMessageAll(
                 me,
-                new TransactionRequest(
+                new BlockRequest(
                         RequestType.START_TRANSACTION,
                         transaction
                 ),
@@ -167,19 +165,21 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     public int getBalance() {
         int balance = 0;
-        for (Transaction transaction : blocks) {
-            if (transaction.getFromId().equals(clientId)) {
-                balance -= transaction.getAmount();
-            } else if (transaction.getToId().equals(clientId)) {
-                balance += transaction.getAmount();
-            }
-        }
+        // TODO : implement balance calculation
+//        for (Block block : blocks) {
+//            if (block.getFromId().equals(clientId)) {
+//                balance -= block.getAmount();
+//            } else if (block.getToId().equals(clientId)) {
+//                balance += block.getAmount();
+//            }
+//        }
         return balance;
     }
 
     public void dumpTransactions() {
-        for(Transaction transaction : blocks) {
-            System.out.println(transaction);
+        // TODO :
+        for(Block block : blocks) {
+            System.out.println(block);
         }
     }
 }

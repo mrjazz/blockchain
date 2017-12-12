@@ -1,5 +1,7 @@
 package com.blockchain;
 
+import com.blockchain.util.KeysUtil;
+import org.junit.Assert;
 import org.junit.Test;
 import sun.misc.BASE64Encoder;
 
@@ -12,33 +14,18 @@ import java.security.*;
 public class KeysTest {
 
     @Test
-    public void testKeyCreate() throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException, SignatureException {
-        KeyPairGenerator keyPairGen = null; // abstrakcyjna klasa
-        keyPairGen = KeyPairGenerator.getInstance("RSA");
-        keyPairGen.initialize(2048); // rozmiar klucza
-        KeyPair keyPair = keyPairGen.genKeyPair();
-        PublicKey pubKey = keyPair.getPublic();
-        PrivateKey privKey = keyPair.getPrivate();
+    public void testKeysUtil() throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException, SignatureException {
+        KeyPair keyPair = KeysUtil.generateKeys();
 
-        System.out.println(pubKey);
-        System.out.println(privKey);
+        Assert.assertNotNull(keyPair);
+        Assert.assertNotNull(keyPair.getPrivate());
+        Assert.assertNotNull(keyPair.getPublic());
 
+        final String TEST_MESSAGE = "Test message";
+        byte[] signature = KeysUtil.sign(TEST_MESSAGE, keyPair.getPrivate());
+        Assert.assertNotNull(signature);
 
-        String message = "Ala ma kota";
-        byte[] messageData = message.getBytes("UTF8");
-        Signature sig = Signature.getInstance("SHA1WithRSA");
-        sig.initSign(privKey);
-        sig.update(messageData);
-        byte[] signatureBytes = sig.sign();
-        System.out.println("Singature:" + new BASE64Encoder().encode(signatureBytes));
-
-
-//        Signature sig = Signature.getInstance("SHA1WithRSA");
-        sig.initVerify(pubKey);
-        String message2 = "Ala ma kota";
-        byte[] messageData2 = message2.getBytes("UTF8");
-        sig.update(messageData2);
-        System.out.println(sig.verify(signatureBytes));
+        Assert.assertTrue(KeysUtil.verify(TEST_MESSAGE, signature, keyPair.getPublic()));
     }
 
 }

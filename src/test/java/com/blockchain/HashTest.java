@@ -1,10 +1,15 @@
 package com.blockchain;
 
+import com.blockchain.client.Block;
 import com.blockchain.client.Transaction;
-import com.blockchain.network.TransactionRequest;
 import com.blockchain.util.HashUtil;
+import com.blockchain.util.KeysUtil;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
 
 
 public class HashTest {
@@ -21,24 +26,28 @@ public class HashTest {
     }
 
     @Test
-    public void transactionHashTest() {
+    public void initTransactionTest() throws NoSuchAlgorithmException {
         long start = System.currentTimeMillis();
-        Transaction transaction = new Transaction("A", "B", 10, 1, "hash".getBytes(), 0);
 
-        transaction.calcNonce();
-        System.out.println(transaction.getNonce());
+        KeyPair clientB = KeysUtil.generateKeys();
 
-        Assert.assertTrue(transaction.isValid());
-        HashUtil.printHash(transaction.getHash());
+        LinkedList<Transaction> input = new LinkedList<>();
+        input.add(new Transaction("A", "B", 10));
+
+        LinkedList<Transaction> output = new LinkedList<>();
+        input.add(new Transaction("B", "1", 1));
+        input.add(new Transaction("B", "B", 9));
+
+        Block block = new Block(0, "hash".getBytes(), input, output);
+        Assert.assertTrue(block.sign(clientB.getPrivate()));
+        block.calcNonce();
+        Assert.assertTrue(block.isValid());
+        Assert.assertTrue(block.verify(clientB.getPublic()));
+
         System.out.println(String.format("Time: %.4fsec", (System.currentTimeMillis() - start)/1000.0));
-    }
 
-    @Test
-    public void initTransactionTest() {
-        Transaction transaction = new Transaction("A", "B", 10, 0, "hash".getBytes(), 1073814698);
-        transaction.calcNonce();
-        Assert.assertTrue(transaction.isValid());
-        System.out.println(transaction.getNonce());
+        System.out.println(block.getNonce());
+        HashUtil.printHash(block.getHash());
     }
 
 
