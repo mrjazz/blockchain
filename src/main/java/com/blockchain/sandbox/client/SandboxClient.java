@@ -135,22 +135,22 @@ public class SandboxClient implements Client, Runnable, Handler {
     @Override
     public void transactionSend(Client to, int amount) {
         // TODO : initialize block correctly
-        Block transaction = new Block(
+//        Block transaction = new Block(
 //                this.getClientId(),
 //                to.getClientId(),
 //                amount,
 //                System.currentTimeMillis(),
 //                blocks.getLast().getHash(),
 //                0
-        );
-        network.broadcastMessageAll(
-                me,
-                new BlockRequest(
-                        RequestType.START_TRANSACTION,
-                        transaction
-                ),
-                response -> System.out.println(response)
-        );
+//        );
+//        network.broadcastMessageAll(
+//                me,
+//                new BlockRequest(
+//                        RequestType.START_TRANSACTION,
+//                        transaction
+//                ),
+//                response -> System.out.println(response)
+//        );
     }
 
     @Override

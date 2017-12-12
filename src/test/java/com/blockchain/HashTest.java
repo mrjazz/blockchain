@@ -1,6 +1,7 @@
 package com.blockchain;
 
 import com.blockchain.client.Block;
+import com.blockchain.client.ClientIdentity;
 import com.blockchain.client.Transaction;
 import com.blockchain.util.HashUtil;
 import com.blockchain.util.KeysUtil;
@@ -29,20 +30,24 @@ public class HashTest {
     public void initTransactionTest() throws NoSuchAlgorithmException {
         long start = System.currentTimeMillis();
 
-        KeyPair clientB = KeysUtil.generateKeys();
+        KeyPair keysA = KeysUtil.generateKeys();
+        KeyPair keysB = KeysUtil.generateKeys();
+        ClientIdentity clientA = new ClientIdentity("A", keysA.getPublic());
+        ClientIdentity clientB = new ClientIdentity("B", keysB.getPublic());
 
         LinkedList<Transaction> input = new LinkedList<>();
-        input.add(new Transaction("A", "B", 10));
+        input.add(new Transaction(clientA, clientB, 10));
 
         LinkedList<Transaction> output = new LinkedList<>();
-        input.add(new Transaction("B", "1", 1));
-        input.add(new Transaction("B", "B", 9));
+        output.add(new Transaction(clientB, clientA, 1));
+        output.add(new Transaction(clientB, clientB, 9));
 
-        Block block = new Block(0, "hash".getBytes(), input, output);
-        Assert.assertTrue(block.sign(clientB.getPrivate()));
+        Block block = Block.create(0, "hash".getBytes(), input, output);
+        Assert.assertNotNull(block);
+        Assert.assertTrue(block.sign(keysB.getPrivate()));
         block.calcNonce();
         Assert.assertTrue(block.isValid());
-        Assert.assertTrue(block.verify(clientB.getPublic()));
+        Assert.assertTrue(block.verify(keysB.getPublic()));
 
         System.out.println(String.format("Time: %.4fsec", (System.currentTimeMillis() - start)/1000.0));
 

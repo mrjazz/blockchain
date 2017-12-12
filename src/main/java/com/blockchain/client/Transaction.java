@@ -9,21 +9,21 @@ import java.io.Serializable;
  */
 public class Transaction implements Serializable {
 
-    final private String fromId;
-    final private String toId;
+    final private ClientIdentity fromId;
+    final private ClientIdentity toId;
     final private int amount;
 
-    public Transaction(String fromId, String toId, int amount) {
+    public Transaction(ClientIdentity fromId, ClientIdentity toId, int amount) {
         this.fromId = fromId;
         this.toId = toId;
         this.amount = amount;
     }
 
-    public String getFromId() {
+    public ClientIdentity getFromId() {
         return fromId;
     }
 
-    public String getToId() {
+    public ClientIdentity getToId() {
         return toId;
     }
 
@@ -33,6 +33,6 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s; %sPTC", fromId, toId, amount);
+        return String.format("%s -> %s; %sPTC", fromId.getName(), toId.getName(), amount);
     }
 }

@@ -3,17 +3,16 @@ package com.blockchain.client;
 import com.blockchain.util.HashUtil;
 import com.blockchain.util.KeysUtil;
 import com.blockchain.util.StringUtil;
-import com.sun.org.apache.xml.internal.security.keys.KeyUtils;
-import javafx.beans.binding.StringBinding;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by denis on 12/10/2017.
@@ -30,14 +29,26 @@ public class Block {
 
     private int nonce;
 
-    public Block() {
+    static public Block create(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+        checkNotNull(inputs, "input can't be null");
+        checkNotNull(outputs, "output can't be null");
+        checkNotNull(prevHash, "prevHash can't be null");
+
+        checkArgument(inputs.size() > 0 || id == 0, "input can't be empty if this is not first block");
+        checkArgument(outputs.size() > 0, "output can't be empty");
+
+        return new Block(id, prevHash, inputs, outputs);
     }
 
-    public Block(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+    private Block(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
         this.id = id;
         this.prevHash = prevHash;
         blockData = new BlockData(inputs, outputs);
         timestamp = System.currentTimeMillis();
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getNonce() {

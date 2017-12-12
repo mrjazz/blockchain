@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.function.Consumer;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by denis on 12/12/2017.
@@ -12,8 +14,16 @@ public class Blockchain implements Iterable<Block> {
 
     private final LinkedBlockingDeque<Block> blocks = new LinkedBlockingDeque<Block>();
 
-    public void add(Block block) {
+    public Blockchain add(Block block) {
+        checkNotNull(block, "empty block can't be added");
+        checkArgument(
+                blocks.size() == 0 || block.getId() - blocks.getLast().getId() == 1,
+                "added id = " + block.getId() + " after last id"
+        );
+        checkArgument(block.isValid(), "block should be valid");
+
         blocks.add(block);
+        return this;
     }
 
     public Block getLast() {
