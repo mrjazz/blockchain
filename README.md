@@ -1,3 +1,5 @@
+[![Travis](https://img.shields.io/travis/mrjazz/blockchain.svg?style=flat-square)](build)
+
 ### Prototype of simple blockchain implementation
 
 #### Transaction protocol
