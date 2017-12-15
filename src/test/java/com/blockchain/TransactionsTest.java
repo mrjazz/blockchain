@@ -21,9 +21,9 @@ public class TransactionsTest {
     @Test
     public void testLeaderElection() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient("A", network, null);
-        SandboxClient clientB = new SandboxClient("B", network, null);
-        SandboxClient clientC = new SandboxClient("C", network, null);
+        SandboxClient clientA = new SandboxClient("A", network);
+        SandboxClient clientB = new SandboxClient("B", network);
+        SandboxClient clientC = new SandboxClient("C", network);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -59,9 +59,9 @@ public class TransactionsTest {
     @Test
     public void testLeaderReElection() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient("A", network, null);
-        SandboxClient clientB = new SandboxClient("B", network, null);
-        SandboxClient clientC = new SandboxClient("C", network, null);
+        SandboxClient clientA = new SandboxClient("A", network);
+        SandboxClient clientB = new SandboxClient("B", network);
+        SandboxClient clientC = new SandboxClient("C", network);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -75,7 +75,7 @@ public class TransactionsTest {
 
         Thread.sleep(1000);
 
-        SandboxClient clientD = new SandboxClient("D", network, null);
+        SandboxClient clientD = new SandboxClient("D", network);
         Thread threadD = new Thread(clientD);
         threadD.start();
 

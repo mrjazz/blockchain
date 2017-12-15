@@ -14,20 +14,24 @@ import java.util.function.Consumer;
 public class SandboxClient implements Client, Runnable, Handler {
 
     private final Network network;
-    private final Blockchain blocks = new Blockchain();
+    private final Blockchain blocks;
 
     private Receiver me;
     private boolean terminated = false;
     private final String clientId;
 
-    public SandboxClient(String clientId, Network network, Collection<Block> trLog) {
+    private static final Customer INITIAL_CUSTOMER = Customer.create("A");
+    private static final int INITIAL_AMOUNT = 100;
+
+    public SandboxClient(String clientId, Network network) {
         this.network = network;
         this.clientId = clientId;
-        if (trLog != null) {
-            for (Block block : trLog) {
-                blocks.add(block);
-            }
-        }
+        this.blocks = new Blockchain(INITIAL_CUSTOMER, INITIAL_AMOUNT);
+//        if (trLog != null) {
+//            for (Block block : trLog) {
+//                blocks.add(block);
+//            }
+//        }
         network.addReceiver(this);
         me = network.getReceiverByClient(this);
     }
@@ -95,7 +99,7 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     private void commitTransaction(Block block) {
         if (validBlock(block)) {
-            blocks.add(block);
+//            blocks.add(block);
             network.broadcastMessage(
                     me,
                     new BlockRequest(RequestType.FINISH_TRANSACTION, block),
@@ -133,27 +137,6 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     @Override
-    public void transactionSend(Client to, int amount) {
-        // TODO : initialize block correctly
-//        Block transaction = new Block(
-//                this.getClientId(),
-//                to.getClientId(),
-//                amount,
-//                System.currentTimeMillis(),
-//                blocks.getLast().getHash(),
-//                0
-//        );
-//        network.broadcastMessageAll(
-//                me,
-//                new BlockRequest(
-//                        RequestType.START_TRANSACTION,
-//                        transaction
-//                ),
-//                response -> System.out.println(response)
-//        );
-    }
-
-    @Override
     public String getClientId() {
         return clientId;
     }
@@ -167,7 +150,7 @@ public class SandboxClient implements Client, Runnable, Handler {
         int balance = 0;
         // TODO : implement balance calculation
 //        for (Block block : blocks) {
-//            if (block.getFromTxId().equals(clientId)) {
+//            if (block.getId().equals(clientId)) {
 //                balance -= block.getAmount();
 //            } else if (block.getClientId().equals(clientId)) {
 //                balance += block.getAmount();

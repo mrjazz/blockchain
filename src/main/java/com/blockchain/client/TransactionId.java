@@ -9,15 +9,15 @@ public class TransactionId implements Serializable {
 
     final private int blockId;
     final private int transactionOutId;
-    final private ClientIdentity client;
+    final private CustomerIdentity client;
 
-    public TransactionId(int blockId, int transactionOutId, ClientIdentity client) {
+    public TransactionId(int blockId, int transactionOutId, CustomerIdentity client) {
         this.blockId = blockId;
         this.transactionOutId = transactionOutId;
         this.client = client;
     }
 
-    public ClientIdentity getClient() {
+    public CustomerIdentity getClient() {
         return client;
     }
 

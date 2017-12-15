@@ -31,7 +31,7 @@ public class BlockRequest implements Request {
 //    public static TransactionRequest of(RequestType requestType, TransactionRequest request) {
 //        return new TransactionRequest(
 //                requestType,
-//                request.getFromTxId(),
+//                request.getId(),
 //                request.getClientId(),
 //                request.getAmount(),
 //                request.getTimestamp(),

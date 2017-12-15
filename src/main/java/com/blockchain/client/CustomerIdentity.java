@@ -6,12 +6,12 @@ import java.security.PublicKey;
 /**
  * Created by denis on 12/12/2017.
  */
-public class ClientIdentity implements Serializable {
+public class CustomerIdentity implements Serializable {
 
     final private String name;
     final private PublicKey publicKey;
 
-    public ClientIdentity(String name, PublicKey publicKey) {
+    public CustomerIdentity(String name, PublicKey publicKey) {
         this.name = name;
         this.publicKey = publicKey;
     }
@@ -34,10 +34,9 @@ public class ClientIdentity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ClientIdentity that = (ClientIdentity) o;
+        CustomerIdentity that = (CustomerIdentity) o;
 
         return publicKey.equals(that.publicKey);
-
     }
 
     @Override

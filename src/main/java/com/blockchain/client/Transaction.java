@@ -7,21 +7,21 @@ import java.io.Serializable;
  */
 public class Transaction implements Serializable {
 
-    final private TransactionId fromTxId;
-    final private ClientIdentity clientId;
+    final private TransactionId id;
+    final private CustomerIdentity clientId;
     final private int amount;
 
-    public Transaction(TransactionId fromTxId, ClientIdentity toId, int amount) {
-        this.fromTxId = fromTxId;
+    public Transaction(TransactionId id, CustomerIdentity toId, int amount) {
+        this.id = id;
         this.clientId = toId;
         this.amount = amount;
     }
 
-    public TransactionId getFromTxId() {
-        return fromTxId;
+    public TransactionId getId() {
+        return id;
     }
 
-    public ClientIdentity getClientId() {
+    public CustomerIdentity getClientId() {
         return clientId;
     }
 
@@ -31,6 +31,6 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s; %sPTC", fromTxId.toString(), clientId.getName(), amount);
+        return String.format("%s -> %s; %sPTC", id.toString(), clientId.getName(), amount);
     }
 }

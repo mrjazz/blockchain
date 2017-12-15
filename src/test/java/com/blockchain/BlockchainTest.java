@@ -1,12 +1,10 @@
 package com.blockchain;
 
 import com.blockchain.client.*;
-import com.blockchain.util.KeysUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,40 +14,27 @@ import java.util.List;
  */
 public class BlockchainTest {
 
-    private KeyPair keysA;
-    private KeyPair keysB;
-
-    private ClientIdentity clientA;
-    private ClientIdentity clientB;
+    private Customer customerA;
+    private Customer customerB;
 
     @Before
     public void init() throws NoSuchAlgorithmException {
-        keysA = KeysUtil.generateKeys();
-        keysB = KeysUtil.generateKeys();
-        clientA = new ClientIdentity("A", keysA.getPublic());
-        clientB = new ClientIdentity("B", keysB.getPublic());
-    }
-
-    @Test
-    public void testBlockchain() throws NoSuchAlgorithmException {
-        Blockchain blockchain = new Blockchain();
-        Block block1 = createEmptyBlock(100);
-        Block block2 = createBlock(1, block1.getHash(), clientA, clientB, 100, 10);
-        Block block3 = createBlock(2, block1.getHash(), clientB, clientA, 10, 2);
-
-        blockchain.add(block1).add(block2).add(block3);
+        customerA = Customer.create("A");
+        customerB = Customer.create("B");
     }
 
     private Block createBlock(
             int id,
             byte[] prevHash,
-            ClientIdentity clientFrom,
-            ClientIdentity clientTo,
+            Customer customerFrom,
+            CustomerIdentity clientTo,
             int initAmount,
             int transferedAmount
     ) {
+        CustomerIdentity clientFrom = customerFrom.getIdentity();
+
         LinkedList<Transaction> input = new LinkedList<>();
-        input.add(new Transaction(new TransactionId(-1, -1, clientA), clientFrom, initAmount));
+        input.add(new Transaction(new TransactionId(0, 0, customerA.getIdentity()), clientFrom, initAmount));
 
         LinkedList<Transaction> output = new LinkedList<>();
         output.add(new Transaction(new TransactionId(1, 0, clientFrom), clientTo, transferedAmount));
@@ -57,55 +42,44 @@ public class BlockchainTest {
 
         Block block = Block.create(id, prevHash, input, output);
         Assert.assertNotNull(block);
-        Assert.assertTrue(block.sign(keysB.getPrivate()));
+        Assert.assertTrue(block.sign(customerFrom.getPrivateKey()));
         block.calcNonce();
         Assert.assertTrue(block.isValid());
-        Assert.assertTrue(block.verify(keysB.getPublic()));
+        Assert.assertTrue(block.verify(customerFrom.getPublicKey()));
 
         return block;
     }
 
     @Test
     public void testEmptyBlockCreation() {
-        Block block = createEmptyBlock(100);
+        Block block = createEmptyBlock(100, customerA.getIdentity());
         Assert.assertTrue(block.isValid());
-        Assert.assertTrue(block.verify(keysA.getPublic()));
+        Assert.assertTrue(block.verify(customerA.getPublicKey()));
     }
 
-    private Block createEmptyBlock(int amount) {
+    private Block createEmptyBlock(int amount, CustomerIdentity client) {
         LinkedList<Transaction> input = new LinkedList<>();
         LinkedList<Transaction> output = new LinkedList<>();
-        output.add(new Transaction(new TransactionId(-1, -1, clientA), clientA, amount));
+        output.add(new Transaction(new TransactionId(0, 0, client), client, amount));
 
         Block block = Block.create(0, "hash".getBytes(), input, output);
         Assert.assertNotNull(block);
-        Assert.assertTrue(block.sign(keysA.getPrivate()));
+        Assert.assertTrue(block.sign(customerA.getPrivateKey()));
 
         block.calcNonce();
         return block;
     }
 
     @Test
-    public void searchBlockTransactions() {
-        Block block0 = createEmptyBlock(100);
-        Block block1 = createBlock(1, "hash".getBytes(), clientA, clientB, 100, 10);
+    public void doTransfer2() {
+        CustomerIdentity customerIdA = this.customerA.getIdentity();
+        CustomerIdentity customerIdB = this.customerB.getIdentity();
 
-        Blockchain blockchain = new Blockchain();
-        blockchain.add(block0);
-        blockchain.add(block1);
-
-        List<Transaction> trIncome1 = blockchain.incomeTransactionsFor(clientA);
-        Assert.assertNotNull(trIncome1);
-        Assert.assertEquals(1, trIncome1.size());
-        Assert.assertEquals(90, trIncome1.get(0).getAmount());
-
-        List<Transaction> trIncome2 = blockchain.incomeTransactionsFor(clientB);
-        Assert.assertNotNull(trIncome2);
-        Assert.assertEquals(1, trIncome2.size());
-        Assert.assertEquals(10, trIncome2.get(0).getAmount());
-
-//        int balanceA = blockchain.balanceFor(clientA);
-//        Assert.assertEquals(90, balanceA);
+        Blockchain blockchain = new Blockchain(customerA, 100);
+        Assert.assertEquals(100, blockchain.balanceFor(customerIdA));
+        blockchain.doTransfer(customerA, customerIdB, 10);
+        Assert.assertEquals(90, blockchain.balanceFor(customerIdA));
+        Assert.assertEquals(10, blockchain.balanceFor(customerIdB));
     }
 
 }

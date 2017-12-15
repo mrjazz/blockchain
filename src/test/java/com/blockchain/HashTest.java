@@ -1,7 +1,7 @@
 package com.blockchain;
 
 import com.blockchain.client.Block;
-import com.blockchain.client.ClientIdentity;
+import com.blockchain.client.CustomerIdentity;
 import com.blockchain.client.Transaction;
 import com.blockchain.client.TransactionId;
 import com.blockchain.util.HashUtil;
@@ -33,8 +33,8 @@ public class HashTest {
 
         KeyPair keysA = KeysUtil.generateKeys();
         KeyPair keysB = KeysUtil.generateKeys();
-        ClientIdentity clientA = new ClientIdentity("A", keysA.getPublic());
-        ClientIdentity clientB = new ClientIdentity("B", keysB.getPublic());
+        CustomerIdentity clientA = new CustomerIdentity("A", keysA.getPublic());
+        CustomerIdentity clientB = new CustomerIdentity("B", keysB.getPublic());
 
         LinkedList<Transaction> input = new LinkedList<>();
         input.add(new Transaction(null, clientB, 10));
