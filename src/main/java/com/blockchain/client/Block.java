@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -132,7 +133,7 @@ public class Block {
 
     public boolean verify(PublicKey publicKey) {
         try {
-            return  KeysUtil.verify(getBlockBody(), signature, publicKey);
+            return KeysUtil.verify(getBlockBody(), signature, publicKey);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (InvalidKeyException e) {
@@ -144,5 +145,12 @@ public class Block {
         }
         return false;
     }
-}
 
+    public List<Transaction> getInputTransactions() {
+        return Collections.unmodifiableList(blockData.getInputs());
+    }
+
+    public List<Transaction> getOutputTransactions() {
+        return Collections.unmodifiableList(blockData.getOutputs());
+    }
+}

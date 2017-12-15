@@ -28,4 +28,20 @@ public class ClientIdentity implements Serializable {
     public String toString() {
         return "@" + name;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ClientIdentity that = (ClientIdentity) o;
+
+        return publicKey.equals(that.publicKey);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return publicKey.hashCode();
+    }
 }

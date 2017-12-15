@@ -167,9 +167,9 @@ public class SandboxClient implements Client, Runnable, Handler {
         int balance = 0;
         // TODO : implement balance calculation
 //        for (Block block : blocks) {
-//            if (block.getFromId().equals(clientId)) {
+//            if (block.getFromTxId().equals(clientId)) {
 //                balance -= block.getAmount();
-//            } else if (block.getToId().equals(clientId)) {
+//            } else if (block.getClientId().equals(clientId)) {
 //                balance += block.getAmount();
 //            }
 //        }

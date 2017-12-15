@@ -1,7 +1,5 @@
 package com.blockchain.client;
 
-import com.blockchain.util.HashUtil;
-
 import java.io.Serializable;
 
 /**
@@ -9,22 +7,22 @@ import java.io.Serializable;
  */
 public class Transaction implements Serializable {
 
-    final private ClientIdentity fromId;
-    final private ClientIdentity toId;
+    final private TransactionId fromTxId;
+    final private ClientIdentity clientId;
     final private int amount;
 
-    public Transaction(ClientIdentity fromId, ClientIdentity toId, int amount) {
-        this.fromId = fromId;
-        this.toId = toId;
+    public Transaction(TransactionId fromTxId, ClientIdentity toId, int amount) {
+        this.fromTxId = fromTxId;
+        this.clientId = toId;
         this.amount = amount;
     }
 
-    public ClientIdentity getFromId() {
-        return fromId;
+    public TransactionId getFromTxId() {
+        return fromTxId;
     }
 
-    public ClientIdentity getToId() {
-        return toId;
+    public ClientIdentity getClientId() {
+        return clientId;
     }
 
     public int getAmount() {
@@ -33,6 +31,6 @@ public class Transaction implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s -> %s; %sPTC", fromId.getName(), toId.getName(), amount);
+        return String.format("%s -> %s; %sPTC", fromTxId.toString(), clientId.getName(), amount);
     }
 }

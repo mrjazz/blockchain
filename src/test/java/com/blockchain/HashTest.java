@@ -3,6 +3,7 @@ package com.blockchain;
 import com.blockchain.client.Block;
 import com.blockchain.client.ClientIdentity;
 import com.blockchain.client.Transaction;
+import com.blockchain.client.TransactionId;
 import com.blockchain.util.HashUtil;
 import com.blockchain.util.KeysUtil;
 import org.junit.Assert;
@@ -36,11 +37,11 @@ public class HashTest {
         ClientIdentity clientB = new ClientIdentity("B", keysB.getPublic());
 
         LinkedList<Transaction> input = new LinkedList<>();
-        input.add(new Transaction(clientA, clientB, 10));
+        input.add(new Transaction(null, clientB, 10));
 
         LinkedList<Transaction> output = new LinkedList<>();
-        output.add(new Transaction(clientB, clientA, 1));
-        output.add(new Transaction(clientB, clientB, 9));
+        output.add(new Transaction(new TransactionId(0, 0, clientB), clientA, 1));
+        output.add(new Transaction(new TransactionId(0, 0, clientB), clientB, 9));
 
         Block block = Block.create(0, "hash".getBytes(), input, output);
         Assert.assertNotNull(block);
