@@ -1,3 +1,4 @@
+[![license](https://img.shields.io/github/license/mrjazz/blockchain.svg?style=flat-square)](license)
 [![Travis](https://img.shields.io/travis/mrjazz/blockchain.svg?style=flat-square)](build)
 
 ### Prototype of simple blockchain implementation
