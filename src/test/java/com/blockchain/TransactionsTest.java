@@ -1,5 +1,6 @@
 package com.blockchain;
 
+import com.blockchain.client.Customer;
 import com.blockchain.client.Transaction;
 import com.blockchain.network.RequestType;
 import com.blockchain.network.SimpleRequest;
@@ -17,13 +18,16 @@ import java.util.ArrayList;
  */
 public class TransactionsTest {
 
-    @Ignore
+    private Customer customerA = SandboxClient.INITIAL_CUSTOMER;
+    private Customer customerB = Customer.create("B");
+    private Customer customerC = Customer.create("C");
+
     @Test
-    public void testLeaderElection() throws InterruptedException {
+    public void testTransfer() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient("A", network);
-        SandboxClient clientB = new SandboxClient("B", network);
-        SandboxClient clientC = new SandboxClient("C", network);
+        SandboxClient clientA = new SandboxClient(customerA, network);
+        SandboxClient clientB = new SandboxClient(customerB, network);
+        SandboxClient clientC = new SandboxClient(customerC, network);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -35,64 +39,21 @@ public class TransactionsTest {
 
         System.out.println("Started...");
 
-        Thread.sleep(1000);
+        Assert.assertEquals(100, clientA.getBalance());
+        clientA.transfer(customerB.getIdentity(), 10);
+
         network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-//        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
+
+        Thread.sleep(1000);
 
         threadA.join();
         threadB.join();
         threadC.join();
 
         System.out.println("Finished...");
-
-        String expectedLog = "0 -> 1; VOTE_FOR_LEADER\n" +
-                "1 <- 0; ACCEPT_LEADER\n" +
-                "0 -> 2; VOTE_FOR_LEADER\n" +
-                "2 <- 0; ACCEPT_LEADER\n" +
-                "1 -> 0; PING\n" +
-                "0 <- 1; PONG";
-
-        Assert.assertEquals(expectedLog, network.getLogs().substring(0, 117));
     }
 
     @Ignore
-    @Test
-    public void testLeaderReElection() throws InterruptedException {
-        SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient("A", network);
-        SandboxClient clientB = new SandboxClient("B", network);
-        SandboxClient clientC = new SandboxClient("C", network);
-
-        Thread threadA = new Thread(clientA);
-        Thread threadB = new Thread(clientB);
-        Thread threadC = new Thread(clientC);
-
-        threadA.start();
-        threadB.start();
-        threadC.start();
-
-        System.out.println("Started...");
-
-        Thread.sleep(1000);
-
-        SandboxClient clientD = new SandboxClient("D", network);
-        Thread threadD = new Thread(clientD);
-        threadD.start();
-
-        network.sendMessage(null, new SandboxReceiver(0), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-
-        Thread.sleep(1000);
-
-        network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-//        network.sendMessage(null, new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
-
-        threadA.join();
-        threadB.join();
-        threadC.join();
-
-        System.out.println("Finished...");
-    }
-
     @Test
     public void testTransaction() throws InterruptedException {
         // TODO : fix test
@@ -134,6 +95,7 @@ public class TransactionsTest {
 //        System.out.println("Finished...");
     }
 
+    @Ignore
     @Test
     public void transactionsTest() {
         // TODO : fix test

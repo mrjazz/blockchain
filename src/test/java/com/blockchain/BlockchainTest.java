@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Created by denis on 12/12/2017.
@@ -77,9 +76,34 @@ public class BlockchainTest {
 
         Blockchain blockchain = new Blockchain(customerA, 100);
         Assert.assertEquals(100, blockchain.balanceFor(customerIdA));
-        blockchain.doTransfer(customerA, customerIdB, 10);
+
+        Block block = blockchain.createBlock(customerA, customerIdB, 10);
+
+        Assert.assertFalse("Block should be invalid without nonce", addBlockInBlockchain(blockchain, block));
+        block.calcNonce();
+        Assert.assertTrue("Block should be valid without nonce", addBlockInBlockchain(blockchain, block));
+
         Assert.assertEquals(90, blockchain.balanceFor(customerIdA));
         Assert.assertEquals(10, blockchain.balanceFor(customerIdB));
+
+        block = blockchain.createBlock(customerB, customerIdA, 5);
+
+        Assert.assertFalse("Block should be invalid without nonce", addBlockInBlockchain(blockchain, block));
+        block.calcNonce();
+        Assert.assertTrue("Block should be valid without nonce", addBlockInBlockchain(blockchain, block));
+
+        Assert.assertEquals(95, blockchain.balanceFor(customerIdA));
+        Assert.assertEquals(5, blockchain.balanceFor(customerIdB));
+    }
+
+    private boolean addBlockInBlockchain(Blockchain blockchain, Block block) {
+        try {
+            blockchain.submitBlock(block);
+            return true;
+        } catch (InvalidBlock invalidBlock) {
+            // System.out.println(invalidBlock.getMessage());
+            return false;
+        }
     }
 
 }

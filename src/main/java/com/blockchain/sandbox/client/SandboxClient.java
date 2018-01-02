@@ -18,20 +18,15 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     private Receiver me;
     private boolean terminated = false;
-    private final String clientId;
+    private final Customer customer;
 
-    private static final Customer INITIAL_CUSTOMER = Customer.create("A");
+    public static final Customer INITIAL_CUSTOMER = Customer.create("A");
     private static final int INITIAL_AMOUNT = 100;
 
-    public SandboxClient(String clientId, Network network) {
+    public SandboxClient(Customer customer, Network network) {
         this.network = network;
-        this.clientId = clientId;
+        this.customer = customer;
         this.blocks = new Blockchain(INITIAL_CUSTOMER, INITIAL_AMOUNT);
-//        if (trLog != null) {
-//            for (Block block : trLog) {
-//                blocks.add(block);
-//            }
-//        }
         network.addReceiver(this);
         me = network.getReceiverByClient(this);
     }
@@ -111,10 +106,10 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     private void verifyWork(Receiver to, Block block) {
-        System.out.println("VERIFY_TRANSACTION - " + getClientId());
+        System.out.println("VERIFY_TRANSACTION - " + getCustomer());
         Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
             if (result) {
-                System.out.println("Verified - " + getClientId());
+                System.out.println("Verified - " + getCustomer());
                 commitTransaction(block);
             }
         });
@@ -136,27 +131,25 @@ public class SandboxClient implements Client, Runnable, Handler {
         return me.getId();
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
     @Override
-    public String getClientId() {
-        return clientId;
+    public void transfer(CustomerIdentity customerIdentity, int amount) {
+        Block block = blocks.createBlock(customer, customerIdentity, amount);
+        network.broadcastMessageAll(me, new BlockRequest(RequestType.START_TRANSACTION, block), (response) -> {
+
+        });
     }
 
     @Override
     public String toString() {
-        return clientId;
+        return customer.toString();
     }
 
     public int getBalance() {
-        int balance = 0;
-        // TODO : implement balance calculation
-//        for (Block block : blocks) {
-//            if (block.getId().equals(clientId)) {
-//                balance -= block.getAmount();
-//            } else if (block.getClientId().equals(clientId)) {
-//                balance += block.getAmount();
-//            }
-//        }
-        return balance;
+        return blocks.balanceFor(customer.getIdentity());
     }
 
     public void dumpTransactions() {

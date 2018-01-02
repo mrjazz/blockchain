@@ -1,6 +1,5 @@
 package com.blockchain.client;
 
-import com.blockchain.util.HashUtil;
 import com.blockchain.util.KeysUtil;
 import com.blockchain.util.StringUtil;
 
@@ -30,6 +29,8 @@ public class Block {
 
     private int nonce;
 
+    private Hashing hashing;
+
     static public Block create(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
         checkNotNull(inputs, "input can't be null");
         checkNotNull(outputs, "output can't be null");
@@ -46,6 +47,8 @@ public class Block {
         this.prevHash = prevHash;
         blockData = new BlockData(inputs, outputs);
         timestamp = System.currentTimeMillis();
+
+        hashing = new Hashing(2); // make configurable
     }
 
     public int getId() {
@@ -57,11 +60,11 @@ public class Block {
     }
 
     public byte[] getHash() {
-        return HashUtil.hash(nonce + getBlockBody() + signature);
+        return hashing.hash(nonce + getBlockBody() + signature);
     }
 
     public boolean isValid() {
-        return HashUtil.isValid(nonce + getBlockBody() + signature);
+        return hashing.isValid(nonce + getBlockBody() + signature);
     }
 
     public byte[] getPrevHash() {
@@ -86,7 +89,7 @@ public class Block {
 
     public void calcNonce() {
         Objects.requireNonNull(signature, "Block should be signed");
-        nonce = HashUtil.calcNonce(getBlockBody() + signature);
+        nonce = hashing.calcNonce(getBlockBody() + signature);
     }
 
     @Override

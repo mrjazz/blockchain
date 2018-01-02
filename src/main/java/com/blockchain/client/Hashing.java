@@ -1,4 +1,4 @@
-package com.blockchain.util;
+package com.blockchain.client;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
@@ -7,11 +7,15 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by denis on 11/5/2017.
  */
-public class HashUtil {
+public class Hashing {
 
-    public static final int COMPLEXITY = 2;
+    private final int complexity;
 
-    public static int calcNonce(String body) {
+    public Hashing(int complexity) {
+        this.complexity = complexity;
+    }
+
+    public int calcNonce(String body) {
         Integer nonce = Math.toIntExact(Math.round(Math.random() * Integer.MAX_VALUE));
         while (!isValid(nonce.toString() + body)) {
             nonce++;
@@ -25,7 +29,7 @@ public class HashUtil {
         return nonce;
     }
 
-    public static byte[] hash(String s) {
+    public byte[] hash(String s) {
         try {
             byte[] bytesOfMessage = s.getBytes("UTF-8");
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -36,23 +40,23 @@ public class HashUtil {
         return null;
     }
 
-    public static boolean isValid(byte[] hash) {
+    public boolean isValid(byte[] hash) {
         if (hash != null) {
             int counter = 0;
             for (int i = 0; i < hash.length; i++) {
                 if (hash[i] != 0) break;
                 counter++;
             }
-            return counter == COMPLEXITY;
+            return counter == complexity;
         }
         return false;
     }
 
-    public static boolean isValid(String s) {
+    public boolean isValid(String s) {
         return isValid(hash(s));
     }
 
-    public static void printHash(byte[] hash) {
+    public void printHash(byte[] hash) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < hash.length; i++) {
             output.append(String.format("%02X", hash[i]));

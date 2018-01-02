@@ -44,7 +44,17 @@ public class Blockchain implements Iterable<Block> {
         return this;
     }
 
-    synchronized public void doTransfer(Customer fromCustomer, CustomerIdentity toCustomerId, int amount) {
+    synchronized public void submitBlock(Block block) throws InvalidBlock {
+        if (!Arrays.equals(block.getPrevHash(), blocks.getLast().getHash())) {
+            throw new InvalidBlock("Block not last");
+        }
+        if (!block.isValid()) {
+            throw new InvalidBlock("Invalid nonce for block");
+        }
+        add(block);
+    }
+
+    public Block createBlock(Customer fromCustomer, CustomerIdentity toCustomerId, int amount) {
         CustomerIdentity fromCustomerId = fromCustomer.getIdentity();
         List<Transaction> input = incomeTransactionsFor(fromCustomerId);
         int fromBalance = sumAmountForTransactions(input);
@@ -84,8 +94,7 @@ public class Blockchain implements Iterable<Block> {
         }
         Block block = Block.create(blockId, lastBlock.getHash(), input, output);
         block.sign(fromCustomer.getPrivateKey());
-        block.calcNonce();
-        add(block);
+        return block;
     }
 
     public Block getLast() {

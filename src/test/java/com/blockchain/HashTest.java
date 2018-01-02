@@ -4,7 +4,7 @@ import com.blockchain.client.Block;
 import com.blockchain.client.CustomerIdentity;
 import com.blockchain.client.Transaction;
 import com.blockchain.client.TransactionId;
-import com.blockchain.util.HashUtil;
+import com.blockchain.client.Hashing;
 import com.blockchain.util.KeysUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,15 +16,17 @@ import java.util.LinkedList;
 
 public class HashTest {
 
+    private Hashing hashing = new Hashing(2);
+
     @Test
     public void hashCalculationTest() {
         final String value = "test";
         long start = System.currentTimeMillis();
-        int nonce = HashUtil.calcNonce(value);
+        int nonce = hashing.calcNonce(value);
         String source = nonce + value;
-        Assert.assertTrue(HashUtil.isValid(source));
+        Assert.assertTrue(hashing.isValid(source));
         System.out.println(String.format("Time: %.4fsec", (System.currentTimeMillis() - start)/1000.0));
-        HashUtil.printHash(HashUtil.hash(source));
+        hashing.printHash(hashing.hash(source));
     }
 
     @Test
@@ -53,7 +55,7 @@ public class HashTest {
         System.out.println(String.format("Time: %.4fsec", (System.currentTimeMillis() - start)/1000.0));
 
         System.out.println(block.getNonce());
-        HashUtil.printHash(block.getHash());
+        hashing.printHash(block.getHash());
     }
 
 

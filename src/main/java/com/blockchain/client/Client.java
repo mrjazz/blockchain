@@ -1,10 +1,8 @@
 package com.blockchain.client;
 
-import com.blockchain.network.Receiver;
-
-
 public interface Client {
 
-    String getClientId();
+    Customer getCustomer();
+    void transfer(CustomerIdentity customerIdentity, int amount);
 
 }
