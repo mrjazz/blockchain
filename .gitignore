@@ -26,3 +26,7 @@ nbdist/
 ### Maven ###
 
 .mvn
+
+### Other ###
+
+docs/
