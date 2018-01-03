@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com</groupId>
-	<artifactId>blockchain</artifactId>
+	<groupId>com.blockchain</groupId>
+	<artifactId>blockchain-web</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>blockchain</name>
-	<description>Demo project for Spring Boot</description>
+	<name>blockchain-web</name>
+	<description>blockchain-web</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -26,21 +26,24 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.blockchain</groupId>
+			<artifactId>blockchain-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>23.5-jre</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 	</dependencies>
 

@@ -2,6 +2,9 @@ package com.blockchain.sandbox.network;
 
 import com.blockchain.client.Client;
 import com.blockchain.network.*;
+import com.blockchain.sandbox.client.SandboxClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,6 +14,8 @@ import java.util.function.Consumer;
  * Created by denis on 11/7/2017.
  */
 public class SandboxNetwork implements Network {
+
+    private static Logger logger = LoggerFactory.getLogger(SandboxNetwork.class);
 
     private AtomicInteger ids = new AtomicInteger(0);
     private Map<Integer, Handler> handlers;
@@ -26,7 +31,7 @@ public class SandboxNetwork implements Network {
 //            throw new RuntimeException(String.format("Message is wrong: %s -> %s; %s", from, to, message));
 //        }
 
-        String logMessage = String.format("%s -> %s; %s\n", from, to, message);
+        String logMessage = String.format("%s -> %s; %s", from, to, message);
         if (!message.getType().equals(RequestType.PING)) {
             log(logMessage);
         }
@@ -34,7 +39,7 @@ public class SandboxNetwork implements Network {
         (new Thread(() -> {
             Response response = getResponse(from, to, message, callback);
             if (!message.getType().equals(RequestType.PING)) {
-                System.out.println(String.format("%s <- %s; %s\n", to, from, response));
+                logger.debug("{} <- {}; {}", to, from, response);
             }
             callback.accept(response);
         })).start();
@@ -42,7 +47,7 @@ public class SandboxNetwork implements Network {
 
     private void log(String logMessage) {
         logHistory.append(logMessage);
-        System.out.print(logMessage);
+        logger.debug(logMessage);
     }
 
     private Response getResponse(Receiver from, Receiver to, Request message, Consumer<Response> response) {

@@ -3,6 +3,8 @@ package com.blockchain.sandbox.client;
 import com.blockchain.client.*;
 import com.blockchain.network.*;
 import com.blockchain.sandbox.handler.VerifyTransactionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -12,6 +14,8 @@ import java.util.function.Consumer;
  * Created by denis on 11/7/2017.
  */
 public class SandboxClient implements Client, Runnable, Handler {
+
+    private static Logger logger = LoggerFactory.getLogger(SandboxClient.class);
 
     private final Network network;
     private final Blockchain blocks;
@@ -83,20 +87,19 @@ public class SandboxClient implements Client, Runnable, Handler {
                 return doFinishTransaction(((BlockRequest) message).getBlock());
 
             default:
-                System.out.println("Unknown message type: " + message);
+                logger.error("Unknown message type:", message);
         }
         return new SimpleResponse(ResponseType.TIMEOUT);
     }
 
     private Response doFinishTransaction(Block block) {
         try {
-
-            System.out.println(String.format("FINISH: %s; %s", customer.toString(), block.toString()));
+            logger.debug("FINISH: {}; {}", customer.toString(), block.toString());
             blocks.submitBlock(transactionBlock);
-            System.out.println(String.format("SUBMITED: %s; %s", customer.toString(), block.toString()));
+            logger.debug("SUBMITED: {}; {}", customer.toString(), block.toString());
             return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
         } catch (InvalidBlock invalidBlock) {
-            System.out.println(invalidBlock.getMessage());
+            logger.debug(invalidBlock.getMessage());
             return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
         }
     }
@@ -132,10 +135,10 @@ public class SandboxClient implements Client, Runnable, Handler {
     }
 
     private void verifyWork(Block block) {
-        System.out.println("VERIFY_TRANSACTION PoW for " + getCustomer());
+        logger.debug("VERIFY_TRANSACTION PoW for " + getCustomer());
         Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
             if (result) {
-                System.out.println("PoW verified for " + getCustomer().toString());
+                logger.debug("PoW verified for " + getCustomer().toString());
                 network.broadcastMessageAll(
                         me,
                         new BlockRequest(RequestType.FINISH_TRANSACTION, block),
@@ -148,14 +151,14 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     private void doWork(Receiver to, Block block) {
         (new Thread(() -> {
-            System.out.println(customer + "; Mining started...");
+            logger.debug(customer + "; Mining started");
             block.calcNonce();
-            System.out.println(customer + "; Mining done...");
+            logger.debug(customer + "; Mining done");
             try {
                 blocks.validateBlock(block);
                 verifyWork(block);
             } catch (InvalidBlock invalidBlock) {
-                System.out.println(invalidBlock.getMessage());
+                logger.debug(invalidBlock.getMessage());
             }
         })).start();
     }

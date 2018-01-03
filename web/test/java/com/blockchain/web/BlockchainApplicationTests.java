@@ -1,4 +1,4 @@
-package com.blockchain;
+package com.blockchain.web;
 
 import org.junit.Ignore;
 import org.junit.Test;
