@@ -20,7 +20,8 @@ public class VerifyTransactionHandler implements Consumer<Response> {
     public VerifyTransactionHandler(int acceptorsCount, Consumer<Boolean> callback) {
         this.acceptorsCount = acceptorsCount;
         this.callback = callback;
-        minAcceptors = (int) Math.ceil(acceptorsCount / 2.0) - 1; // don't include myself
+        minAcceptors = acceptorsCount-1;
+//        minAcceptors = (int) Math.ceil(acceptorsCount / 2.0) - 1; // don't include myself
     }
 
     @Override

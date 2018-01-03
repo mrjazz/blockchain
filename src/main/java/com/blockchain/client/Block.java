@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Block {
 
+    private final Configuration configuration;
     private int id;
     private long timestamp;
 
@@ -31,7 +32,13 @@ public class Block {
 
     private Hashing hashing;
 
-    static public Block create(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+    static public Block create(
+            Configuration configuration,
+            int id,
+            byte[] prevHash,
+            List<Transaction> inputs,
+            List<Transaction> outputs
+    ) {
         checkNotNull(inputs, "input can't be null");
         checkNotNull(outputs, "output can't be null");
         checkNotNull(prevHash, "prevHash can't be null");
@@ -39,16 +46,17 @@ public class Block {
         checkArgument(inputs.size() > 0 || id == 0, "input can't be empty if this is not first block");
         checkArgument(outputs.size() > 0, "output can't be empty");
 
-        return new Block(id, prevHash, inputs, outputs);
+        return new Block(configuration, id, prevHash, inputs, outputs);
     }
 
-    private Block(int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+    private Block(Configuration configuration, int id, byte[] prevHash, List<Transaction> inputs, List<Transaction> outputs) {
+        this.configuration = configuration;
         this.id = id;
         this.prevHash = prevHash;
         blockData = new BlockData(inputs, outputs);
         timestamp = System.currentTimeMillis();
 
-        hashing = new Hashing(2); // make configurable
+        hashing = new Hashing(configuration.getComplexity()); // make configurable
     }
 
     public int getId() {
@@ -85,6 +93,11 @@ public class Block {
         }
 
         return builder.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "Block{nonce=" + nonce + '}';
     }
 
     public void calcNonce() {

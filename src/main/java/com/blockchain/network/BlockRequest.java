@@ -42,7 +42,7 @@ public class BlockRequest implements Request {
 
     @Override
     public String toString() {
-        return "block";
+        return getType() + "; " + block.toString();
 //        return String.format("%s -> %s (%s$); %s; %s", fromId, toId, amount, requestType, timestamp);
     }
 

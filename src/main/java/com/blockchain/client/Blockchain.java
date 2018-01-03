@@ -17,15 +17,24 @@ public class Blockchain implements Iterable<Block> {
     private final HashMap<TransactionId, Transaction> inputTransactions = new HashMap<>();
     private final HashMap<TransactionId, Transaction> outputTransactions = new HashMap<>();
 
-    public Blockchain(Customer initialCustomer, int initialAmount) {
-        LinkedList<Transaction> input = new LinkedList<>();
-        LinkedList<Transaction> output = new LinkedList<>();
-        CustomerIdentity initialCustomerIdentity = initialCustomer.getIdentity();
-        output.add(new Transaction(new TransactionId(0, 0, initialCustomerIdentity), initialCustomerIdentity, initialAmount));
-        Block block = Block.create(0, "hash".getBytes(), input, output);
-        block.sign(initialCustomer.getPrivateKey());
-        block.calcNonce();
-        add(block);
+    private static Block firstBlock;
+
+    private static final int COMPLEXITY = 3;
+    private final Configuration configuration;
+
+    public Blockchain(Configuration configuration, Customer initialCustomer, int initialAmount) {
+        this.configuration = configuration;
+
+        if (firstBlock == null) {
+            LinkedList<Transaction> input = new LinkedList<>();
+            LinkedList<Transaction> output = new LinkedList<>();
+            CustomerIdentity initialCustomerIdentity = initialCustomer.getIdentity();
+            output.add(new Transaction(new TransactionId(0, 0, initialCustomerIdentity), initialCustomerIdentity, initialAmount));
+            firstBlock = Block.create(configuration, 0, "hash".getBytes(), input, output);
+            firstBlock.sign(initialCustomer.getPrivateKey());
+            firstBlock.calcNonce();
+        }
+        add(firstBlock);
     }
 
     private Blockchain add(Block block) {
@@ -44,17 +53,27 @@ public class Blockchain implements Iterable<Block> {
         return this;
     }
 
-    synchronized public void submitBlock(Block block) throws InvalidBlock {
+    public void validateBlock(Block block) throws InvalidBlock {
+        if (block == null) {
+            throw new InvalidBlock("Block is null");
+        }
+        if (blocks.getLast() == null) {
+            throw new InvalidBlock("Last block is null");
+        }
         if (!Arrays.equals(block.getPrevHash(), blocks.getLast().getHash())) {
             throw new InvalidBlock("Block not last");
         }
         if (!block.isValid()) {
             throw new InvalidBlock("Invalid nonce for block");
         }
+    }
+
+    synchronized public void submitBlock(Block block) throws InvalidBlock {
+        validateBlock(block);
         add(block);
     }
 
-    public Block createBlock(Customer fromCustomer, CustomerIdentity toCustomerId, int amount) {
+    public Block createBlock(Configuration configuration, Customer fromCustomer, CustomerIdentity toCustomerId, int amount) {
         CustomerIdentity fromCustomerId = fromCustomer.getIdentity();
         List<Transaction> input = incomeTransactionsFor(fromCustomerId);
         int fromBalance = sumAmountForTransactions(input);
@@ -92,7 +111,7 @@ public class Blockchain implements Iterable<Block> {
                 break;
             }
         }
-        Block block = Block.create(blockId, lastBlock.getHash(), input, output);
+        Block block = Block.create(configuration, blockId, lastBlock.getHash(), input, output);
         block.sign(fromCustomer.getPrivateKey());
         return block;
     }

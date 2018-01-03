@@ -17,4 +17,5 @@ public class SyncResponse extends SimpleResponse {
     public Blockchain getBlocks() {
         return blocks;
     }
+
 }

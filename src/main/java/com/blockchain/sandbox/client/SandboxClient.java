@@ -20,13 +20,21 @@ public class SandboxClient implements Client, Runnable, Handler {
     private boolean terminated = false;
     private final Customer customer;
 
+    private Block transactionBlock;
+    private long transactionStart;
+
+    private final Configuration configuration;
+
     public static final Customer INITIAL_CUSTOMER = Customer.create("A");
     private static final int INITIAL_AMOUNT = 100;
+    private static final int TRANSACTION_TIMEOUT = 200;
 
-    public SandboxClient(Customer customer, Network network) {
+
+    public SandboxClient(Configuration configuration, Customer customer, Network network) {
+        this.configuration = configuration;
         this.network = network;
         this.customer = customer;
-        this.blocks = new Blockchain(INITIAL_CUSTOMER, INITIAL_AMOUNT);
+        this.blocks = new Blockchain(configuration, INITIAL_CUSTOMER, INITIAL_AMOUNT);
         network.addReceiver(this);
         me = network.getReceiverByClient(this);
     }
@@ -70,17 +78,9 @@ public class SandboxClient implements Client, Runnable, Handler {
                 doWork(receiver, ((BlockRequest) message).getBlock());
                 return new SimpleResponse(ResponseType.TRANSACTION_STARTED);
             case VERIFY_WORK:
-                if (validBlock(((BlockRequest) message).getBlock())) {
-                    return new SimpleResponse(ResponseType.VERIFIED_WORK);
-                }
-                return new SimpleResponse(ResponseType.TIMEOUT);
+                return doVerifyWork(((BlockRequest) message).getBlock());
             case FINISH_TRANSACTION:
-//                Transaction transaction = ((TransactionRequest) message).getTransaction();
-//                if (validBlock(transaction)) {
-//                    blocks.add(transaction);
-//                    return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
-//                }
-                return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
+                return doFinishTransaction(((BlockRequest) message).getBlock());
 
             default:
                 System.out.println("Unknown message type: " + message);
@@ -88,41 +88,74 @@ public class SandboxClient implements Client, Runnable, Handler {
         return new SimpleResponse(ResponseType.TIMEOUT);
     }
 
+    private Response doFinishTransaction(Block block) {
+        try {
+
+            System.out.println(String.format("FINISH: %s; %s", customer.toString(), block.toString()));
+            blocks.submitBlock(transactionBlock);
+            System.out.println(String.format("SUBMITED: %s; %s", customer.toString(), block.toString()));
+            return new SimpleResponse(ResponseType.COMMIT_TRANSACTION);
+        } catch (InvalidBlock invalidBlock) {
+            System.out.println(invalidBlock.getMessage());
+            return new SimpleResponse(ResponseType.ROLLBACK_TRANSACTION);
+        }
+    }
+
+    private boolean validateTransaction(Block block) {
+        if (transactionBlock != null && System.currentTimeMillis() < transactionStart + TRANSACTION_TIMEOUT) {
+            return false;
+        }
+
+        try {
+            blocks.validateBlock(block);
+        } catch (InvalidBlock invalidBlock) {
+            invalidBlock.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    private synchronized Response doVerifyWork(Block block) {
+        if (!validateTransaction(block)) {
+            return new SimpleResponse(ResponseType.TIMEOUT);
+        }
+
+        transactionStart = System.currentTimeMillis();
+        transactionBlock = block;
+
+        return new SimpleResponse(ResponseType.VERIFIED_WORK);
+    }
+
     private boolean validBlock(Block block) {
         return block.isValid() && Arrays.equals(blocks.getLast().getHash(), block.getPrevHash());
     }
 
-    private void commitTransaction(Block block) {
-        if (validBlock(block)) {
-//            blocks.add(block);
-            network.broadcastMessage(
-                    me,
-                    new BlockRequest(RequestType.FINISH_TRANSACTION, block),
-                    response -> {}
-            );
-        } else {
-            System.out.println("Invalid block " + block);
-        }
-    }
-
-    private void verifyWork(Receiver to, Block block) {
-        System.out.println("VERIFY_TRANSACTION - " + getCustomer());
+    private void verifyWork(Block block) {
+        System.out.println("VERIFY_TRANSACTION PoW for " + getCustomer());
         Consumer<Response> verifyTransaction = new VerifyTransactionHandler(network.getReceiversCount(), (result) -> {
             if (result) {
-                System.out.println("Verified - " + getCustomer());
-                commitTransaction(block);
+                System.out.println("PoW verified for " + getCustomer().toString());
+                network.broadcastMessageAll(
+                        me,
+                        new BlockRequest(RequestType.FINISH_TRANSACTION, block),
+                        response -> {}
+                );
             }
         });
-        network.broadcastMessage(me, new BlockRequest(RequestType.VERIFY_WORK, block), verifyTransaction);
+        network.broadcastMessageAll(me, new BlockRequest(RequestType.VERIFY_WORK, block), verifyTransaction);
     }
 
     private void doWork(Receiver to, Block block) {
         (new Thread(() -> {
-            System.out.println("Mining started...");
+            System.out.println(customer + "; Mining started...");
             block.calcNonce();
-            System.out.println("Mining done...");
-            if (validBlock(block)) {
-                verifyWork(to, block);
+            System.out.println(customer + "; Mining done...");
+            try {
+                blocks.validateBlock(block);
+                verifyWork(block);
+            } catch (InvalidBlock invalidBlock) {
+                System.out.println(invalidBlock.getMessage());
             }
         })).start();
     }
@@ -137,7 +170,7 @@ public class SandboxClient implements Client, Runnable, Handler {
 
     @Override
     public void transfer(CustomerIdentity customerIdentity, int amount) {
-        Block block = blocks.createBlock(customer, customerIdentity, amount);
+        Block block = blocks.createBlock(configuration, customer, customerIdentity, amount);
         network.broadcastMessageAll(me, new BlockRequest(RequestType.START_TRANSACTION, block), (response) -> {
 
         });

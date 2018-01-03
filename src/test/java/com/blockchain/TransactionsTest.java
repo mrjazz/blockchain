@@ -1,5 +1,6 @@
 package com.blockchain;
 
+import com.blockchain.client.Configuration;
 import com.blockchain.client.Customer;
 import com.blockchain.client.Transaction;
 import com.blockchain.network.RequestType;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
  */
 public class TransactionsTest {
 
+    private static final Configuration config = new Configuration(2);
     private Customer customerA = SandboxClient.INITIAL_CUSTOMER;
     private Customer customerB = Customer.create("B");
     private Customer customerC = Customer.create("C");
@@ -25,9 +27,9 @@ public class TransactionsTest {
     @Test
     public void testTransfer() throws InterruptedException {
         SandboxNetwork network = new SandboxNetwork();
-        SandboxClient clientA = new SandboxClient(customerA, network);
-        SandboxClient clientB = new SandboxClient(customerB, network);
-        SandboxClient clientC = new SandboxClient(customerC, network);
+        SandboxClient clientA = new SandboxClient(config, customerA, network);
+        SandboxClient clientB = new SandboxClient(config, customerB, network);
+        SandboxClient clientC = new SandboxClient(config, customerC, network);
 
         Thread threadA = new Thread(clientA);
         Thread threadB = new Thread(clientB);
@@ -41,6 +43,10 @@ public class TransactionsTest {
 
         Assert.assertEquals(100, clientA.getBalance());
         clientA.transfer(customerB.getIdentity(), 10);
+
+        Thread.sleep(8000);
+        Assert.assertEquals("A didn't transfer to B", 90, clientA.getBalance());
+        Assert.assertEquals("B didn't receive from A", 10, clientB.getBalance());
 
         network.broadcastMessageAll(new SandboxReceiver(1), new SimpleRequest(RequestType.TERMINATE), (response) -> {});
 

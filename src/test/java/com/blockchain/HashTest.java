@@ -1,10 +1,6 @@
 package com.blockchain;
 
-import com.blockchain.client.Block;
-import com.blockchain.client.CustomerIdentity;
-import com.blockchain.client.Transaction;
-import com.blockchain.client.TransactionId;
-import com.blockchain.client.Hashing;
+import com.blockchain.client.*;
 import com.blockchain.util.KeysUtil;
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,7 +12,9 @@ import java.util.LinkedList;
 
 public class HashTest {
 
-    private Hashing hashing = new Hashing(2);
+    private static final int COMPLEXITY = 2;
+    private static final Configuration configuration = new Configuration(COMPLEXITY);
+    private Hashing hashing = new Hashing(COMPLEXITY);
 
     @Test
     public void hashCalculationTest() {
@@ -45,7 +43,7 @@ public class HashTest {
         output.add(new Transaction(new TransactionId(0, 0, clientB), clientA, 1));
         output.add(new Transaction(new TransactionId(0, 0, clientB), clientB, 9));
 
-        Block block = Block.create(0, "hash".getBytes(), input, output);
+        Block block = Block.create(configuration, 0, "hash".getBytes(), input, output);
         Assert.assertNotNull(block);
         Assert.assertTrue(block.sign(keysB.getPrivate()));
         block.calcNonce();

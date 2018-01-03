@@ -41,4 +41,9 @@ public class Customer {
     public PublicKey getPublicKey() {
         return keys.getPublic();
     }
+
+    @Override
+    public String toString() {
+        return "Customer{name=" + name + "}";
+    }
 }

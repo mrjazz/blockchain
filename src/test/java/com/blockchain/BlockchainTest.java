@@ -13,6 +13,8 @@ import java.util.LinkedList;
  */
 public class BlockchainTest {
 
+    private static final Configuration configuration = new Configuration(2);
+
     private Customer customerA;
     private Customer customerB;
 
@@ -39,7 +41,7 @@ public class BlockchainTest {
         output.add(new Transaction(new TransactionId(1, 0, clientFrom), clientTo, transferedAmount));
         output.add(new Transaction(new TransactionId(1, 1, clientFrom), clientFrom, initAmount - transferedAmount));
 
-        Block block = Block.create(id, prevHash, input, output);
+        Block block = Block.create(configuration, id, prevHash, input, output);
         Assert.assertNotNull(block);
         Assert.assertTrue(block.sign(customerFrom.getPrivateKey()));
         block.calcNonce();
@@ -61,7 +63,7 @@ public class BlockchainTest {
         LinkedList<Transaction> output = new LinkedList<>();
         output.add(new Transaction(new TransactionId(0, 0, client), client, amount));
 
-        Block block = Block.create(0, "hash".getBytes(), input, output);
+        Block block = Block.create(configuration, 0, "hash".getBytes(), input, output);
         Assert.assertNotNull(block);
         Assert.assertTrue(block.sign(customerA.getPrivateKey()));
 
@@ -74,10 +76,10 @@ public class BlockchainTest {
         CustomerIdentity customerIdA = this.customerA.getIdentity();
         CustomerIdentity customerIdB = this.customerB.getIdentity();
 
-        Blockchain blockchain = new Blockchain(customerA, 100);
+        Blockchain blockchain = new Blockchain(configuration, customerA, 100);
         Assert.assertEquals(100, blockchain.balanceFor(customerIdA));
 
-        Block block = blockchain.createBlock(customerA, customerIdB, 10);
+        Block block = blockchain.createBlock(configuration, customerA, customerIdB, 10);
 
         Assert.assertFalse("Block should be invalid without nonce", addBlockInBlockchain(blockchain, block));
         block.calcNonce();
@@ -86,7 +88,7 @@ public class BlockchainTest {
         Assert.assertEquals(90, blockchain.balanceFor(customerIdA));
         Assert.assertEquals(10, blockchain.balanceFor(customerIdB));
 
-        block = blockchain.createBlock(customerB, customerIdA, 5);
+        block = blockchain.createBlock(configuration, customerB, customerIdA, 5);
 
         Assert.assertFalse("Block should be invalid without nonce", addBlockInBlockchain(blockchain, block));
         block.calcNonce();
