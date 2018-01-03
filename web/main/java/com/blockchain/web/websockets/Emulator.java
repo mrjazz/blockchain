@@ -1,17 +1,23 @@
-package com.blockchain.web;
+package com.blockchain.web.websockets;
 
 import com.blockchain.client.Configuration;
 import com.blockchain.client.Customer;
 import com.blockchain.sandbox.client.SandboxClient;
 import com.blockchain.sandbox.network.SandboxNetwork;
+import com.blockchain.web.websockets.messages.CustomerProfile;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Created by denis on 1/3/2018.
  */
-public class Emulator extends Thread {
+@Service
+public class Emulator {
 
     private Configuration config = new Configuration(2);
 
@@ -23,6 +29,7 @@ public class Emulator extends Thread {
 
     private SandboxNetwork network = new SandboxNetwork();
 
+    @PostConstruct
     public void init() {
         SandboxClient clientA = new SandboxClient(config, customerA, network);
         SandboxClient clientB = new SandboxClient(config, customerB, network);
@@ -40,28 +47,31 @@ public class Emulator extends Thread {
     }
 
     private SandboxClient customerWithPositiveBalance() {
-        return Arrays.stream(clients)
-                .filter(c -> c.getBalance() > 0)
-                .findFirst()
-                .get();
+        SandboxClient result;
+        do {
+            result = clients[randomBelow(clients.length)];
+        } while (result.getBalance() <= 1);
+        return result;
     }
 
     public void run() {
-        try {
-            for (int i = 1; i < 10; i++) {
-                SandboxClient from = customerWithPositiveBalance();
-                SandboxClient to = anyClientExcept(from);
-                int amount = randomBelow(from.getBalance());
-                System.out.println(String.format("Transfer: %s -> %s (%d)", from, to, amount));
-                from.transfer(to.getCustomer().getIdentity(), amount);
-                Thread.sleep(8000);
-                for (int j = 0; j < clients.length; j++) {
-                    System.out.println(clients[j] + " = " + clients[j].getBalance());
-                }
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        SandboxClient from = customerWithPositiveBalance();
+        SandboxClient to = anyClientExcept(from);
+        int amount = randomBelow(from.getBalance());
+        System.out.println(String.format("Transfer: %s -> %s (%d)", from, to, amount));
+        from.transfer(to.getCustomer().getIdentity(), amount);
+    }
+
+    public void dumpBalances() {
+        for (int j = 0; j < clients.length; j++) {
+            System.out.println(clients[j] + " = " + clients[j].getBalance());
         }
+    }
+
+    public List<CustomerProfile> getCustomerProfiles() {
+        return Arrays.stream(clients)
+                .map(c -> new CustomerProfile(c.getCustomer().getName(), c.getBalance()))
+                .collect(Collectors.toList());
     }
 
     private SandboxClient anyClientExcept(SandboxClient customer) {
@@ -74,12 +84,6 @@ public class Emulator extends Thread {
 
     private int randomBelow(int max) {
         return (new Random()).nextInt(max);
-    }
-
-    public static void main(String[] args) {
-        Emulator thread = new Emulator();
-        thread.init();
-        thread.start();
     }
 
 }

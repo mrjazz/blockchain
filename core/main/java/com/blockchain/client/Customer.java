@@ -38,6 +38,10 @@ public class Customer {
         return null;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public PublicKey getPublicKey() {
         return keys.getPublic();
     }

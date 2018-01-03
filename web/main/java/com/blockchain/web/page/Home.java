@@ -14,4 +14,9 @@ public class Home {
         return "pages/home";
     }
 
+    @RequestMapping("/messaging")
+    public String messaging() {
+        return "pages/websockets";
+    }
+
 }
