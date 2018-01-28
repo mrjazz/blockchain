@@ -19,7 +19,7 @@ public class BlockchainApplicationTests {
 	public void testTransaction() throws InterruptedException {
         emulator.dumpBalances();
         emulator.run();
-        Thread.sleep(8000);
+        Thread.sleep(5000);
         emulator.dumpBalances();
 	}
 

@@ -194,4 +194,8 @@ public class SandboxClient implements Client, Runnable, Handler {
             System.out.println(block);
         }
     }
+
+    public Block getLatestBlock() {
+        return blocks.getLast();
+    }
 }

@@ -4,6 +4,7 @@ import com.blockchain.client.Configuration;
 import com.blockchain.client.Customer;
 import com.blockchain.sandbox.client.SandboxClient;
 import com.blockchain.sandbox.network.SandboxNetwork;
+import com.blockchain.web.model.BlockDetails;
 import com.blockchain.web.websockets.messages.CustomerProfile;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +45,10 @@ public class Emulator {
         threadA.start();
         threadB.start();
         threadC.start();
+    }
+
+    public BlockDetails getLatestBlock() {
+        return BlockDetails.of(clients[0].getLatestBlock());
     }
 
     private SandboxClient customerWithPositiveBalance() {

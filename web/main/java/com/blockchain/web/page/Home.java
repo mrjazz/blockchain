@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class Home {
 
-    @RequestMapping("/")
+    @RequestMapping("/home")
     public String index() {
         return "pages/home";
     }
 
-    @RequestMapping("/messaging")
+    @RequestMapping("/")
     public String messaging() {
         return "pages/websockets";
     }

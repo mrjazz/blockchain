@@ -25,6 +25,10 @@ function connect() {
         stompClient.subscribe('/topic/customers', function (customers) {
             showCustomers(JSON.parse(customers.body));
         });
+
+        stompClient.subscribe('/topic/block', function (block) {
+            showBlock(JSON.parse(block.body));
+        });
     });
 }
 
@@ -50,6 +54,18 @@ function showCustomers(customers) {
     }).join("");
     console.log(html);
     $("#customers").html(html);
+}
+
+function showBlock(block) {
+    console.info(block);
+    var html = "<tr>";
+    html += "<td>" + block.id + "</td>";
+    html += "<td>" + block.timestamp + "</td>";
+    html += "<td>" + block.prevHash + "</td>";
+    html += "<td>" + block.hash + "</td>";
+    html += "<td>" + block.nonce + "</td>";
+    html += "</td>";
+    $("#blocks").append(html);
 }
 
 $(function () {

@@ -56,12 +56,16 @@ public class Hashing {
         return isValid(hash(s));
     }
 
-    public void printHash(byte[] hash) {
+    public String hashToString(byte[] hash) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < hash.length; i++) {
             output.append(String.format("%02X", hash[i]));
         }
-        System.out.println(String.format("Hash: %s", output.toString()));
+        return output.toString();
+    }
+
+    public void printHash(byte[] hash) {
+        System.out.println(String.format("Hash: %s", hashToString(hash)));
     }
 
 }

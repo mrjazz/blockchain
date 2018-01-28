@@ -4,6 +4,7 @@ import com.blockchain.util.KeysUtil;
 import com.blockchain.util.StringUtil;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 import java.util.Arrays;
@@ -77,6 +78,10 @@ public class Block {
 
     public byte[] getPrevHash() {
         return prevHash;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
     }
 
     private String getBlockBody() {

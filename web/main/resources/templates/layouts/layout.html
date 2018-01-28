@@ -7,6 +7,18 @@
     <script th:src="@{/webjars/sockjs-client/sockjs.min.js}"></script>
     <script th:src="@{/webjars/stomp-websocket/stomp.min.js}"></script>
     <script src="/app.js"></script>
+    <style>
+        table {
+            border: 1px gray;
+            width: 80%;
+        }
+        table td, table th {
+            padding: 3px;
+        }
+        table th {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div layout:fragment="content"/>
