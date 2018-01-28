@@ -1,3 +1,5 @@
+### Features list
+
  - [X] Symulator powinien pozwalać na uruchamianie wielu wątków.
  - [X] Każdy wątek reprezentuje działania pojedynczego użytkownika kryptowaluty.
  - [X] Użytkownicy są górnikami.
