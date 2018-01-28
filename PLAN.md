@@ -1,45 +1,38 @@
-[X] Symulator powinien pozwalać na uruchamianie wielu wątków.
-[X] Każdy wątek reprezentuje działania pojedynczego użytkownika kryptowaluty.
-[X] Użytkownicy są górnikami.
-[X] Komunikacja odbywa się na zasadzie rozgłaszania.
-[X] Dla uproszczenia zakładamy niezawodną komunikację.
-[X] Zatwierdzanie transakcji wymaga proof of work.
-[X] Proof of work powinien być kosztowny obliczeniowo. Postaraj się użyć innego rozwiązania niż przyjęte w protokole Bitcoin.
-[X] Proof of work nie może być zbyt trudny obliczeniowo – zatwierdzanie transakcji powinno być realizowane w ciągu kilku-kilkunastu sekund.
-[X] Program powinien umożliwiać podgląd zdarzeń na każdym z symulowanych węzłów (klientów).
-[X] Każdy klient utrzymuje swój blockchain
-[X] Dla każdego z węzłów powinna istnieć możliwość zobaczenia blockchaina (prosta wizualizacja) wraz z rozgałęzieniami, które zostały odrzucone.
-[X] Program powinien umożliwiać symulowanie oszustów tj. powinna istnieć możliwość procentowego określenia liczby węzłów, które próbują dokonać oszustwa (np. przelewu środków, bez autoryzacji).
-[X] Dla dużego uproszczenia zakładamy, że zamiast podpisów cyfrowych jest stosowane jawne hasło.
-[X] Transakcje powinny przypominać transakcje z protokołu Bitcoin.
-[X] Co kilkadziesiąt sekund klient zleca transakcje (przekazanie środków do innego, losowego klienta/ów)
-[X] Weryfikacja transakcji odbywa się przez sprawdzenie czy poprawny został podany podpis (ze względu na uproszczenie dotyczące podpisów, sprawdzamy tylko czy podpis i jest taki sam jak ten składowany w poprzedniej transakcji, z której wydajemy środki). Zakładamy, że oszust nie widzi podpisu i nie może go podrobić.
-
-[X] portfel klienta składa się z nazwy klienta (może być losowa) oraz pojedynczej pary klucza prywatnego i
-publicznego
-[X] utworzenie bloku „genesis”, który przyznaje walutę (10 PTC – PutCoinów) losowo wybranemu klientowi
-[X] generowanie przelewów waluty pomiędzy kontami klientów
-[X] W bloku może być wiele transakcji. Transakcje muszą być poprawne (patrz opis transakcji).
-[X] Zatwierdzanie bloku wymaga proof of work. Proof of work powinien być kosztowny obliczeniowo. Postaraj się użyć innego rozwiązania niż przyjęte w protokole Bitcoin.
-[X] Uwaga: proof of work nie może być zbyt trudny obliczeniowo – zatwierdzanie transakcji powinno być realizowane w ciągu kilku-kilkunastu sekund (zalecana jest automatyczne sterownie trudnością (na przykład co kilka bloków).
-[X] Część generowanych transakcji powinna być niepoprawna (zły podpis/double spending/zła kwota etc.)
-[X] Dodatkowym atutem będzie generowanie transakcji do zatwierdzenia, które od siebie zależą np. 1 PTC przesyłany jest z konta na adres X, a z tego adresu przesyłany jest 1 PTC na adres B – dwie transakcje w jednej paczce do zatwierdzenia.
-[X] Wykorzystaj klucze publiczne i prywatne oferowane przez pakiet java.security.
-[X] Transakcja
-[X] może mieć wiele wejść i wiele wyjść
-[X] każde wejście musi mieć określoną transakcję, z której pobieramy środki (hasz transakcji i numer wyjścia)
-[X] każde wejście musi mieć określony podpis odblokowujący środki z wyjścia transakcji, z której otrzymaliśmy PTC
-[X] suma PTC na wejściach nie może być mniejsza niż suma PTC na wyjściach
-[X] jeżeli suma na wyjściu jest mniejsza niż suma na wejściu, zatwierdzający blok otrzymuje prowizję
-
-
-[X] Key generaton for client, add key in Client. Signing Transaction with key. (Can be skipped in project 1)
-[X] Search all Transactions for Client, calculate balance functionality
-[X] Ignore block zero
-[X] Block creation and validation
-[X] Transaction processing (PoW and verification)
-[ ] Blocks sync logic and resunc in case invalid chain for Client
-[X] Visualization of Clients, Blocks, Transactions, operations log
-
-
-
+ - [X] Symulator powinien pozwalać na uruchamianie wielu wątków.
+ - [X] Każdy wątek reprezentuje działania pojedynczego użytkownika kryptowaluty.
+ - [X] Użytkownicy są górnikami.
+ - [X] Komunikacja odbywa się na zasadzie rozgłaszania.
+ - [X] Dla uproszczenia zakładamy niezawodną komunikację.
+ - [X] Zatwierdzanie transakcji wymaga proof of work.
+ - [X] Proof of work powinien być kosztowny obliczeniowo. Postaraj się użyć innego rozwiązania niż przyjęte w protokole Bitcoin.
+ - [X] Proof of work nie może być zbyt trudny obliczeniowo – zatwierdzanie transakcji powinno być realizowane w ciągu kilku-kilkunastu sekund.
+ - [X] Program powinien umożliwiać podgląd zdarzeń na każdym z symulowanych węzłów (klientów).
+ - [X] Każdy klient utrzymuje swój blockchain
+ - [X] Dla każdego z węzłów powinna istnieć możliwość zobaczenia blockchaina (prosta wizualizacja) wraz z rozgałęzieniami, które zostały odrzucone.
+ - [X] Program powinien umożliwiać symulowanie oszustów tj. powinna istnieć możliwość procentowego określenia liczby węzłów, które próbują dokonać oszustwa (np.  - przelewu środków, bez autoryzacji).
+ - [X] Dla dużego uproszczenia zakładamy, że zamiast podpisów cyfrowych jest stosowane jawne hasło.
+ - [X] Transakcje powinny przypominać transakcje z protokołu Bitcoin.
+ - [X] Co kilkadziesiąt sekund klient zleca transakcje (przekazanie środków do innego, losowego klienta/ów)
+ - [X] Weryfikacja transakcji odbywa się przez sprawdzenie czy poprawny został podany podpis (ze względu na uproszczenie dotyczące podpisów, sprawdzamy tylko czy  - podpis i jest taki sam jak ten składowany w poprzedniej transakcji, z której wydajemy środki). Zakładamy, że oszust nie widzi podpisu i nie może go podrobić.
+ - [X] portfel klienta składa się z nazwy klienta (może być losowa) oraz pojedynczej pary klucza prywatnego i publicznego
+ - [X] utworzenie bloku „genesis”, który przyznaje walutę (10 PTC – PutCoinów) losowo wybranemu klientowi
+ - [X] generowanie przelewów waluty pomiędzy kontami klientów
+ - [X] W bloku może być wiele transakcji. Transakcje muszą być poprawne (patrz opis transakcji).
+ - [X] Zatwierdzanie bloku wymaga proof of work. Proof of work powinien być kosztowny obliczeniowo. Postaraj się użyć innego rozwiązania niż przyjęte w protokole  - Bitcoin.
+ - [X] Uwaga: proof of work nie może być zbyt trudny obliczeniowo – zatwierdzanie transakcji powinno być realizowane w ciągu kilku-kilkunastu sekund (zalecana jest  - automatyczne sterownie trudnością (na przykład co kilka bloków).
+ - [X] Część generowanych transakcji powinna być niepoprawna (zły podpis/double spending/zła kwota etc.)
+ - [X] Dodatkowym atutem będzie generowanie transakcji do zatwierdzenia, które od siebie zależą np. 1 PTC przesyłany jest z konta na adres X, a z tego adresu  - przesyłany jest 1 PTC na adres B – dwie transakcje w jednej paczce do zatwierdzenia.
+ - [X] Wykorzystaj klucze publiczne i prywatne oferowane przez pakiet java.security.
+ - [X] Transakcja
+ - [X] może mieć wiele wejść i wiele wyjść
+ - [X] każde wejście musi mieć określoną transakcję, z której pobieramy środki (hasz transakcji i numer wyjścia)
+ - [X] każde wejście musi mieć określony podpis odblokowujący środki z wyjścia transakcji, z której otrzymaliśmy PTC
+ - [X] suma PTC na wejściach nie może być mniejsza niż suma PTC na wyjściach
+ - [X] jeżeli suma na wyjściu jest mniejsza niż suma na wejściu, zatwierdzający blok otrzymuje prowizję
+ - [X] Key generaton for client, add key in Client. Signing Transaction with key. (Can be skipped in project 1)
+ - [X] Search all Transactions for Client, calculate balance functionality
+ - [X] Ignore block zero
+ - [X] Block creation and validation
+ - [X] Transaction processing (PoW and verification)
+ - [ ] Blocks sync logic and resunc in case invalid chain for Client
+ - [X] Visualization of Clients, Blocks, Transactions, operations log
